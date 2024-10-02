@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'views/welcome.dart';
 
 void main() {
   runApp(const MyApp());
