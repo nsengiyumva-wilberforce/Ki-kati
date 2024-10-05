@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Socket.IO Chat Test</title>
+    <script src="http://localhost:5000/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <h1>Socket.IO Chat Test</h1>
+    <input id="username" placeholder="Username" />
+    <input id="message" placeholder="Message" />
+    <button onclick="sendMessage()">Send</button>
+    <ul id="messages"></ul>
+    <div id="status"></div>
+    <!-- Connection status -->
+
+    <script>
+      const socket = io("http://localhost:5000");
+
+      // Check connection status
+      socket.on("connect", () => {
+        document.getElementById("status").innerHTML =
+          "Connected to the server!";
+        console.log("Successfully connected to Socket.IO server");
+      });
+
+      // Handle connection error
+      socket.on("connect_error", (error) => {
+        document.getElementById("status").innerHTML =
+          "Connection failed: " + error.message;
+        console.error("Connection Error:", error);
+      });
+
+      // Handle connection timeout
+      socket.on("connect_timeout", (timeout) => {
+        document.getElementById("status").innerHTML = "Connection timed out!";
+        console.warn("Connection Timeout:", timeout);
+      });
+
+      // Handle disconnection
+      socket.on("disconnect", () => {
+        document.getElementById("status").innerHTML =
+          "Disconnected from the server";
+        console.log("Disconnected from Socket.IO server");
+      });
+
+      // Listen for incoming messages
+      socket.on("messageReceived", (data) => {
+        const messagesList = document.getElementById("messages");
+        const li = document.createElement("li");
+        li.textContent = `${data.sender}: ${data.content}`;
+        messagesList.appendChild(li);
+      });
+
+      // Send message to the server
+      function sendMessage() {
+        const username = document.getElementById("username").value;
+        const message = document.getElementById("message").value;
+        socket.emit("sendMessage", { sender: username, content: message });
+        document.getElementById("message").value = ""; // Clear the input field
+      }
+    </script>
+  </body>
+</html>
