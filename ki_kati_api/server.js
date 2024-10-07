@@ -7,15 +7,16 @@ const socketIo = require("socket.io");
 
 const authRoutes = require("./routes/auth");
 const messageRoutes = require("./routes/messages");
+const groupRoutes = require("./routes/groups");
 
 const app = express();
 const server = http.createServer(app); // Create HTTP server
 
 const io = socketIo(server, {
   cors: {
-      origin: "*", // You can specify your frontend URL here
-      methods: ["GET", "POST"]
-  }
+    origin: "*", // You can specify your frontend URL here
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  },
 });
 
 const PORT = process.env.PORT || 5000;
@@ -33,6 +34,7 @@ mongoose
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes(io));
+app.use("/api/groups", groupRoutes(io));
 
 // Socket.IO Events
 io.on("connection", (socket) => {

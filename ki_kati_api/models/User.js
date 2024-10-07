@@ -13,7 +13,8 @@ const UserSchema = new mongoose.Schema({
       },
       message: (props) => `${props.value} is not a valid email!`,
     },
-  }, // Added email field
+  },
+  groups: [{ type: mongoose.Schema.Types.ObjectId, ref: "Group" }], // Array of Group references
 });
 
 module.exports = mongoose.model("User", UserSchema);
