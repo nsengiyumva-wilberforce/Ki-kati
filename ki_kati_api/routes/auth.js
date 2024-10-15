@@ -10,7 +10,7 @@ const router = express.Router();
 
 // Registration route
 router.post("/register", async (req, res) => {
-  const { username, password, email } = req.body;
+  const { username, password, email, firstName, lastName, gender, dateOfBirth } = req.body;
 
   try {
     const existingUser = await User.findOne({ username });
@@ -19,15 +19,17 @@ router.post("/register", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const confirmationCode = Math.floor(
-      100000 + Math.random() * 900000
-    ).toString();
+    const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
     const confirmationCodeExpires = Date.now() + 15 * 60 * 1000; // Code expires in 15 minutes
 
     const newUser = new User({
       username,
       password: hashedPassword,
       email,
+      firstName,
+      lastName,
+      gender,
+      dateOfBirth,
       isEmailConfirmed: false,
       confirmationCode,
       confirmationCodeExpires,
@@ -37,13 +39,13 @@ router.post("/register", async (req, res) => {
     await sendConfirmationEmail(email, username, confirmationCode);
 
     res.status(201).json({
-      message:
-        "User created successfully, a 6 digit code has been sent your email for comfirmation. and will expire in 15 minutes.",
+      message: "User created successfully, a 6-digit code has been sent to your email for confirmation, and it will expire in 15 minutes.",
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 // Verify confirmation code
 router.post("/verify-code", async (req, res) => {
@@ -189,8 +191,26 @@ router.post("/reset-password/:token", async (req, res) => {
   }
 });
 
-router.get("/protected", auth, (req, res) => {
-  res.json({ message: "This is a protected route", user: req.user });
+// Logout route
+router.post("/logout", auth, (req, res) => {
+  try {
+    // Get the socket ID from the request (you might need to store it when the user connects)
+    const socketId = req.user.socketId; // Example: retrieve the socketId from the user object
+
+    if (socketId) {
+      // Disconnect the socket
+      const socket = io.sockets.sockets.get(socketId);
+      if (socket) {
+        socket.disconnect(true); // Forcefully disconnect the socket
+      }
+    }
+
+    // Optionally, handle blacklisting the token here
+
+    res.json({ message: "Logged out successfully." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 module.exports = router;

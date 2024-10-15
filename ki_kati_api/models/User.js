@@ -14,6 +14,10 @@ const UserSchema = new mongoose.Schema({
       message: (props) => `${props.value} is not a valid email!`,
     },
   },
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  gender: { type: String, enum: ['male', 'female', 'other', 'Female', 'Male', 'Other'], required: true },
+  dateOfBirth: { type: Date, required: true },
   groups: [{ type: mongoose.Schema.Types.ObjectId, ref: "Group" }], // Array of Group references
   isEmailConfirmed: { type: Boolean, default: false }, // Email confirmation status
   confirmationCode: { type: String }, // Confirmation code
