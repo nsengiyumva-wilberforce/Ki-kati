@@ -1,12 +1,13 @@
 const express = require("express");
 const auth = require("../middleware/auth"); // Your auth middleware
+const emailVerified = require("../middleware/email-verified"); // Your email verification middleware
 const Message = require("../models/Message");
 
 const router = express.Router();
 
 module.exports = (io) => {
   // Send a message
-  router.post("/send", auth, async (req, res) => {
+  router.post("/send", auth, emailVerified, async (req, res) => {
     const { recipient, content } = req.body;
 
     try {
@@ -33,7 +34,7 @@ module.exports = (io) => {
   });
 
   // Get messages between users
-  router.get("/conversation/:recipientId", auth, async (req, res) => {
+  router.get("/conversation/:recipientId", auth, emailVerified, async (req, res) => {
     const { recipientId } = req.params;
 
     try {
@@ -52,7 +53,7 @@ module.exports = (io) => {
   });
 
   // Get all messages for the logged-in user
-  router.get("/", auth, async (req, res) => {
+  router.get("/", auth, emailVerified, async (req, res) => {
     try {
       const messages = await Message.find({ recipient: req.user.id })
         .populate("sender", "username") // Assuming sender has a 'username' field
@@ -66,14 +67,14 @@ module.exports = (io) => {
   });
 
   // Delete a message
-  router.delete("/:messageId", auth, async (req, res) => {
+  router.delete("/:messageId", auth, emailVerified, async (req, res) => {
     try {
       const message = await Message.findById(req.params.messageId);
-
+  
       if (!message) {
         return res.status(404).json({ message: "Message not found" });
       }
-
+  
       // Optionally, check if the user is the sender or the recipient of the message
       if (
         message.sender.toString() !== req.user.id &&
@@ -83,14 +84,15 @@ module.exports = (io) => {
           .status(403)
           .json({ message: "Not authorized to delete this message" });
       }
-
-      await message.remove();
+  
+      await Message.findByIdAndDelete(req.params.messageId); // Use this instead
       res.status(200).json({ message: "Message deleted successfully" });
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: "Server error" });
     }
   });
+  
 
   return router; // Return the router
 };

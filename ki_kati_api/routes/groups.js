@@ -1,5 +1,6 @@
 const express = require("express");
 const auth = require("../middleware/auth"); // Your auth middleware
+const emailVerified = require("../middleware/email-verified"); // Your email verification middleware
 const Group = require("../models/Group");
 const User = require("../models/User");
 const Message = require("../models/Message");
@@ -8,7 +9,7 @@ const router = express.Router();
 
 module.exports = (io) => {
   // Create a group
-  router.post("/create", auth, async (req, res) => {
+  router.post("/create", auth, emailVerified, async (req, res) => {
     const { name, members } = req.body; // members is an array of user IDs
 
     try {
@@ -32,7 +33,7 @@ module.exports = (io) => {
   });
 
   // Join a group
-  router.post("/join", auth, async (req, res) => {
+  router.post("/join", auth, emailVerified, async (req, res) => {
     const { groupId } = req.body;
 
     try {
@@ -59,7 +60,7 @@ module.exports = (io) => {
   });
 
   // Leave a group
-  router.post("/leave", auth, async (req, res) => {
+  router.post("/leave", auth, emailVerified, async (req, res) => {
     const { groupId } = req.body;
 
     try {
@@ -84,16 +85,14 @@ module.exports = (io) => {
   });
 
   // Send a message to a group
-  router.post("/sendMessage", auth, async (req, res) => {
+  router.post("/sendMessage", auth, emailVerified, async (req, res) => {
     const { groupId, content } = req.body;
 
     try {
       const group = await Group.findById(groupId);
 
       if (!group || !group.members.includes(req.user.id)) {
-        return res
-          .status(403)
-          .json({ message: "User not a member of the group" });
+        return res.status(403).json({ message: "User not a member of the group" });
       }
 
       const message = new Message({
@@ -119,12 +118,9 @@ module.exports = (io) => {
   });
 
   // Optional: Get group details
-  router.get("/:id", auth, async (req, res) => {
+  router.get("/:id", auth, emailVerified, async (req, res) => {
     try {
-      const group = await Group.findById(req.params.id).populate(
-        "members",
-        "username"
-      ); // Populate with member usernames
+      const group = await Group.findById(req.params.id).populate("members", "username"); // Populate with member usernames
 
       if (!group) {
         return res.status(404).json({ message: "Group not found" });
@@ -139,3 +135,4 @@ module.exports = (io) => {
 
   return router;
 };
+

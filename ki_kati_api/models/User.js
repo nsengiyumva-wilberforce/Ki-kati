@@ -15,6 +15,9 @@ const UserSchema = new mongoose.Schema({
     },
   },
   groups: [{ type: mongoose.Schema.Types.ObjectId, ref: "Group" }], // Array of Group references
+  isEmailConfirmed: { type: Boolean, default: false }, // Email confirmation status
+  confirmationCode: { type: String }, // Confirmation code
+  confirmationCodeExpires: { type: Date }, // Code expiration time
 });
 
 module.exports = mongoose.model("User", UserSchema);

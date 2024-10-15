@@ -4,32 +4,111 @@ const Message = require("../models/Message");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const auth = require("../middleware/auth");
+const { sendConfirmationEmail } = require("../services/emailService"); // Adjust the path as needed
 
 const router = express.Router();
 
-// Register a new user
+// Registration route
 router.post("/register", async (req, res) => {
   const { username, password, email } = req.body;
 
   try {
-    // Check if the user already exists
     const existingUser = await User.findOne({ username });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+    const confirmationCode = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+    const confirmationCodeExpires = Date.now() + 15 * 60 * 1000; // Code expires in 15 minutes
 
-    // Create a new user
-    const newUser = new User({ username, password: hashedPassword, email });
+    const newUser = new User({
+      username,
+      password: hashedPassword,
+      email,
+      isEmailConfirmed: false,
+      confirmationCode,
+      confirmationCodeExpires,
+    });
     await newUser.save();
 
-    res.status(201).json({ message: "User created successfully" });
+    await sendConfirmationEmail(email, username, confirmationCode);
+
+    res.status(201).json({
+      message:
+        "User created successfully, a 6 digit code has been sent your email for comfirmation. and will expire in 15 minutes.",
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+
+// Verify confirmation code
+router.post("/verify-code", async (req, res) => {
+  const { username, code } = req.body;
+
+  try {
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if the code is correct and not expired
+    if (
+      user.confirmationCode !== code ||
+      Date.now() > user.confirmationCodeExpires
+    ) {
+      return res.status(400).json({ message: "Invalid or expired code" });
+    }
+
+    // Mark email as confirmed
+    user.isEmailConfirmed = true;
+    user.confirmationCode = undefined; // Clear the code
+    user.confirmationCodeExpires = undefined; // Clear expiration
+    await user.save();
+
+    res.json({ message: "Email confirmed successfully!" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Resend confirmation code
+router.post("/resend-code", async (req, res) => {
+  const { username } = req.body;
+
+  try {
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.isEmailConfirmed) {
+      return res.status(400).json({ message: "Email is already confirmed." });
+    }
+
+    // Generate a new confirmation code
+    const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const confirmationCodeExpires = Date.now() + 15 * 60 * 1000; // Code expires in 15 minutes
+
+    // Update user with the new code and expiration
+    user.confirmationCode = confirmationCode;
+    user.confirmationCodeExpires = confirmationCodeExpires;
+    await user.save();
+
+    // Send the new confirmation email
+    await sendConfirmationEmail(user.email, user.username, confirmationCode);
+
+    res.json({ message: "New confirmation code sent to your email." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 
 // Login a user
 router.post("/login", async (req, res) => {
@@ -55,6 +134,58 @@ router.post("/login", async (req, res) => {
   } catch (error) {
     console.error(error); // Log the error
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// Request password reset
+router.post("/request-password-reset", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+    const resetLink = `http://your-app-url/reset-password/${resetToken}`; // Update with your app URL
+
+    // Send reset email
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Password Reset Request",
+      text: `To reset your password, click the link: ${resetLink}`,
+    });
+
+    res.json({ message: "Password reset link sent to your email." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Reset password
+router.post("/reset-password/:token", async (req, res) => {
+  const { password } = req.body;
+  const { token } = req.params;
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid token" });
+    }
+
+    // Hash the new password
+    user.password = await bcrypt.hash(password, 10);
+    await user.save();
+
+    res.json({ message: "Password reset successfully." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
