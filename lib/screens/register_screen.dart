@@ -87,19 +87,9 @@ class _RegisterState extends State<Register> {
       confirmPasswordController.clear();
     });
 
-    //route the user to the otp screen
-    // Navigate to the OTP screen
-    Navigator.pushReplacement(
-      // ignore: use_build_context_synchronously
-      context,
-      MaterialPageRoute(
-          builder: (context) =>
-              OtpScreen()), // Replace with your actual OTP screen widget
-    );
-
-    /*
     // Show success pop-up
     showDialog(
+      // ignore: use_build_context_synchronously
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -107,11 +97,21 @@ class _RegisterState extends State<Register> {
             "Success",
             style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
           ),
-          content: const Text("Your account has been created!"),
+          content: const Text(
+              "Your account has been created and we sent you an access code, check you email!"),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // Close the pop-up
+                //route the user to the otp screen
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const OtpScreen(
+                          email:
+                              "kinyonyidavid@gmail.com") //emailController.text
+                      ),
+                );
               },
               child: const Text("OK"),
             ),
@@ -119,7 +119,6 @@ class _RegisterState extends State<Register> {
         );
       },
     );
-    */
   }
 
   @override

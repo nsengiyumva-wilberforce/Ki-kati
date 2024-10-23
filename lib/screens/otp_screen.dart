@@ -3,7 +3,8 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 
 class OtpScreen extends StatefulWidget {
-  const OtpScreen({super.key});
+  final String email;
+  const OtpScreen({super.key, required this.email});
 
   @override
   State<OtpScreen> createState() => _OtpScreenState();
@@ -52,6 +53,22 @@ class _OtpScreenState extends State<OtpScreen> {
     print("Resending OTP...");
   }
 
+  String maskEmail(String email) {
+    final atIndex = email.indexOf('@');
+    if (atIndex <= 1) return email; // Return as is if email is too short
+
+    final localPart = email.substring(0, atIndex);
+    final domainPart = email.substring(atIndex);
+
+    // Masking the characters from the second to the second last
+    final maskedLocalPart = localPart[0] +
+        '*' * (localPart.length - 2) +
+        localPart.substring(localPart.length - 1);
+
+    return maskedLocalPart +
+        domainPart; // Combine masked local part with domain part
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,9 +100,10 @@ class _OtpScreenState extends State<OtpScreen> {
             const SizedBox(height: 5.0),
             Row(
               children: [
-                const Text(
-                  "kinyonyidavid@gmail.com",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0),
+                Text(
+                  maskEmail(widget.email),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 14.0),
                 ),
                 const SizedBox(width: 10.0),
                 GestureDetector(
