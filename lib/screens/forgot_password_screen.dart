@@ -20,6 +20,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     setState(() {
       _isLoading = true; // Set loading to true
       _successMessage = null; // Clear any previous success message
+      _errorMessage = null;
     });
 
     // Simulate a network request

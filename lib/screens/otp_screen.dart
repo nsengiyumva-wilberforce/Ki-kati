@@ -3,7 +3,8 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 
 class OtpScreen extends StatefulWidget {
-  const OtpScreen({super.key});
+  final String email;
+  const OtpScreen({super.key, required this.email});
 
   @override
   State<OtpScreen> createState() => _OtpScreenState();
@@ -52,6 +53,22 @@ class _OtpScreenState extends State<OtpScreen> {
     print("Resending OTP...");
   }
 
+  String maskEmail(String email) {
+    final atIndex = email.indexOf('@');
+    if (atIndex <= 1) return email; // Return as is if email is too short
+
+    final localPart = email.substring(0, atIndex);
+    final domainPart = email.substring(atIndex);
+
+    // Masking the characters from the second to the second last
+    final maskedLocalPart = localPart[0] +
+        '*' * (localPart.length - 2) +
+        localPart.substring(localPart.length - 1);
+
+    return maskedLocalPart +
+        domainPart; // Combine masked local part with domain part
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,6 +81,13 @@ class _OtpScreenState extends State<OtpScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Center(
+              child: Image(
+                image: AssetImage("images/logo.png"),
+                width: 120.0,
+              ),
+            ),
+            const SizedBox(height: 5.0),
             const Text(
               "Verification Code",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22.0),
@@ -76,9 +100,10 @@ class _OtpScreenState extends State<OtpScreen> {
             const SizedBox(height: 5.0),
             Row(
               children: [
-                const Text(
-                  "kinyonyidavid@gmail.com",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0),
+                Text(
+                  maskEmail(widget.email),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 14.0),
                 ),
                 const SizedBox(width: 10.0),
                 GestureDetector(
@@ -102,7 +127,7 @@ class _OtpScreenState extends State<OtpScreen> {
                 children: List.generate(4, (index) {
                   return SizedBox(
                     height: 55,
-                    width: 50,
+                    width: 60,
                     child: TextField(
                       controller: controllers[index],
                       onChanged: (value) {
@@ -114,7 +139,7 @@ class _OtpScreenState extends State<OtpScreen> {
                       },
                       keyboardType: TextInputType.number,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 24),
+                      style: const TextStyle(fontSize: 18),
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
