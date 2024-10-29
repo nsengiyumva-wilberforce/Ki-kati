@@ -5,6 +5,7 @@ import 'package:ki_kati/components/social_icon_button.dart';
 import 'package:ki_kati/components/custom_button.dart';
 import 'package:ki_kati/main.dart';
 import 'package:ki_kati/screens/forgot_password_screen.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 
 class Login extends StatefulWidget {
@@ -15,6 +16,7 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  final secureStorage = const FlutterSecureStorage();
   // Text editing controllers
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
@@ -73,9 +75,6 @@ class _LoginState extends State<Login> {
       _generalError = null; // Clear previous general error
     });
 
-    // Simulate a network request
-    await Future.delayed(const Duration(seconds: 2));
-
     // Validate username and password fields
     if (usernameController.text.isEmpty) {
       setState(() {
@@ -95,11 +94,17 @@ class _LoginState extends State<Login> {
       return; // Exit the method if validation fails
     }
 
+    // Simulate a network request
+    await Future.delayed(const Duration(seconds: 2));
+
     // Simulate successful login
-    if (usernameController.text == "validUser" &&
-        passwordController.text == "validPass") {
-      print(usernameController.text);
-      print(passwordController.text);
+    if (usernameController.text == "engdave" &&
+        passwordController.text == "engdave") {
+      //print(usernameController.text);
+      //print(passwordController.text);
+      await secureStorage.write(
+          key: 'authToken', value: "123"); // Save token securely
+      print("Token saved:");
       setState(() {
         _isLoading = false; // Set loading to false
         // Reset the input fields

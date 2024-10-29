@@ -31,8 +31,18 @@ class HttpService {
         headers: {'Content-Type': 'application/json'},
         body: json.encode(data),
       );
-      if (response.statusCode == 201) {
-        return json.decode(response.body);
+      // Return a map with the status code and body regardless of the outcome
+
+      /*return {
+        'statusCode': response.statusCode,
+        'body': jsonDecode(response.body),
+      };
+      */
+      if (response.statusCode >= 200 && response.statusCode <= 500) {
+        return {
+          'statusCode': response.statusCode,
+          'body': jsonDecode(response.body),
+        };
       } else {
         throw Exception('Failed to post data: ${response.statusCode}');
       }
