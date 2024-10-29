@@ -3,7 +3,9 @@ import 'package:ki_kati/components/http_servive.dart';
 import 'package:ki_kati/components/textfield_component.dart';
 import 'package:ki_kati/components/social_icon_button.dart';
 import 'package:ki_kati/components/custom_button.dart';
+import 'package:ki_kati/main.dart';
 import 'package:ki_kati/screens/forgot_password_screen.dart';
+
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -105,6 +107,21 @@ class _LoginState extends State<Login> {
         passwordController.clear();
         _generalError = null;
       });
+
+    //   route
+
+      // Navigator.push(context, const MyApp() )
+      // return MaterialPageRoute(
+      //   builder: (context) => MyApp()
+      // );
+
+        // Navigate to Screen2 when the button is tapped
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const MyApp()),
+        );
+
+
     } else {
       setState(() {
         _isLoading = false; // Set loading to false
