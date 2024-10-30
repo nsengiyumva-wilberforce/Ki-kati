@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ki_kati/components/textfield_component.dart';
 import 'package:ki_kati/components/custom_button.dart';
+import 'package:ki_kati/components/http_servive.dart';
 
 class ForgotPassword extends StatefulWidget {
   const ForgotPassword({super.key});
@@ -10,6 +11,7 @@ class ForgotPassword extends StatefulWidget {
 }
 
 class _ForgotPasswordState extends State<ForgotPassword> {
+  final HttpService httpService = HttpService('https://ki-kati.com/api');
   final emailController = TextEditingController();
   bool _isLoading = false; // Loading state
   String? _errorMessage; // Variable to hold error message
@@ -23,9 +25,6 @@ class _ForgotPasswordState extends State<ForgotPassword> {
       _errorMessage = null;
     });
 
-    // Simulate a network request
-    await Future.delayed(const Duration(seconds: 2));
-
     // Validate email
     final email = emailController.text;
     if (email.isEmpty || !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
@@ -37,13 +36,41 @@ class _ForgotPasswordState extends State<ForgotPassword> {
       return; // Exit the method if validation fails
     }
 
-    // Simulate successful reset
-    setState(() {
-      _isLoading = false; // Set loading to false
-      emailController.clear();
-      _successMessage =
-          'A reset link has been sent to your email!'; // Success message
-    });
+    // Simulate a network request
+    //await Future.delayed(const Duration(seconds: 2));
+
+    //perform network request
+    try {
+      final response = await httpService.post('/auth/request-password-reset', {
+        'email': emailController.text,
+      });
+      print(response);
+      if (response['statusCode'] == 200) {
+        // successful reset
+        setState(() {
+          _isLoading = false; // Set loading to false
+          emailController.clear();
+          _successMessage = response['body']['message']; // Success message
+        });
+      } else {
+        // Handle other status codes
+        setState(() {
+          _isLoading = false; // Set loading to false
+          _successMessage =
+              response['body']['message']; // Set general error message
+        });
+      }
+    } catch (e) {
+      print('Error: $e'); // Handle errors here\
+      setState(() {
+        _isLoading = false; // Set loading to false
+        _successMessage = 'Error: $e'; // Set general error message
+      });
+    } finally {
+      setState(() {
+        _isLoading = false; // Set loading to false
+      });
+    }
   }
 
   @override

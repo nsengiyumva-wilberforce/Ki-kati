@@ -5,6 +5,7 @@ import 'package:ki_kati/components/social_icon_button.dart';
 import 'package:ki_kati/components/custom_button.dart';
 import 'package:ki_kati/screens/forgot_password_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:ki_kati/screens/home_screen.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -24,48 +25,15 @@ class _LoginState extends State<Login> {
   String? _passwordError; // Variable to hold password error message
   String? _generalError; // Variable to hold general error message
 
-  final HttpService httpService =
-      HttpService('https://jsonplaceholder.typicode.com');
-
-  String _data = 'Fetching data...';
+  final HttpService httpService = HttpService('https://ki-kati.com/api');
 
   @override
   void initState() {
     super.initState();
-    fetchData();
-  }
-
-  Future<void> fetchData() async {
-    try {
-      final data = await httpService.get('/posts/1');
-      print(data);
-      setState(() {
-        _data = data['title']; // Update state with the fetched data
-      });
-    } catch (e) {
-      print(e);
-      setState(() {
-        _data = 'Error: $e';
-      });
-    }
-  }
-
-  Future<void> postData() async {
-    try {
-      final data = await httpService.post('/posts', {
-        'title': 'foo',
-        'body': 'bar',
-        'userId': 1,
-      });
-      print(data); // Handle your posted data
-    } catch (e) {
-      print('Error: $e'); // Handle errors here
-    }
   }
 
   // Sign user in method
   void signUserIn() async {
-    fetchData();
     setState(() {
       _isLoading = true; // Set loading to true
       _usernameError = null; // Clear previous username error
@@ -93,28 +61,48 @@ class _LoginState extends State<Login> {
     }
 
     // Simulate a network request
-    await Future.delayed(const Duration(seconds: 2));
-
-    // Simulate successful login
-    if (usernameController.text == "engdave" &&
-        passwordController.text == "engdave") {
-      //print(usernameController.text);
-      //print(passwordController.text);
-      await secureStorage.write(
-          key: 'authToken', value: "123"); // Save token securely
-      print("Token saved:");
-      setState(() {
-        _isLoading = false; // Set loading to false
-        // Reset the input fields
-        usernameController.clear();
-        passwordController.clear();
-        _generalError = null;
+    //await Future.delayed(const Duration(seconds: 2));
+    try {
+      final response = await httpService.post('/auth/login', {
+        'username': usernameController.text,
+        'password': passwordController.text
       });
-    } else {
+      print(response);
+      if (response['statusCode'] == 200) {
+        // Simulate success
+        setState(() {
+          _isLoading = false; // Set loading to false
+          // Reset the input fields
+          usernameController.clear();
+          passwordController.clear();
+          _generalError = null;
+        });
+
+        Navigator.push(
+          // ignore: use_build_context_synchronously
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      } else {
+        // Handle other status codes
+        setState(() {
+          _isLoading = false; // Set loading to false
+          _generalError =
+              response['body']['message']; // Set general error message
+        });
+
+        print(response);
+      }
+    } catch (e) {
+      print('Error: $e'); // Handle errors here\
       setState(() {
         _isLoading = false; // Set loading to false
         _generalError =
             'Invalid username or password'; // Set general error message
+      });
+    } finally {
+      setState(() {
+        _isLoading = false; // Set loading to false
       });
     }
   }
@@ -297,3 +285,33 @@ class _LoginState extends State<Login> {
     );
   }
 }
+
+/*
+  Future<void> fetchData() async {
+    try {
+      final data = await httpService.get('/posts/1');
+      print(data);
+      setState(() {
+        _data = data['title']; // Update state with the fetched data
+      });
+    } catch (e) {
+      print(e);
+      setState(() {
+        _data = 'Error: $e';
+      });
+    }
+  }
+
+  Future<void> postData() async {
+    try {
+      final data = await httpService.post('/posts', {
+        'title': 'foo',
+        'body': 'bar',
+        'userId': 1,
+      });
+      print(data); // Handle your posted data
+    } catch (e) {
+      print('Error: $e'); // Handle errors here
+    }
+  }
+*/

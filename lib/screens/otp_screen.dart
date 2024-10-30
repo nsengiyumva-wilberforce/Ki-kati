@@ -1,21 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:ki_kati/components/http_servive.dart';
 import 'dart:async';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:ki_kati/screens/login_screen.dart';
 
 class OtpScreen extends StatefulWidget {
   final String email;
-  const OtpScreen({super.key, required this.email});
+  final String username;
+  const OtpScreen({super.key, required this.email, required this.username});
 
   @override
   State<OtpScreen> createState() => _OtpScreenState();
 }
 
 class _OtpScreenState extends State<OtpScreen> {
+  final secureStorage = const FlutterSecureStorage();
+  final HttpService httpService = HttpService('https://ki-kati.com/api');
   final List<TextEditingController> controllers =
-      List.generate(4, (_) => TextEditingController());
+      List.generate(6, (_) => TextEditingController());
 
   int _start = 30; // Countdown starting value
   Timer? _timer; // Timer instance
+  bool isLoading = false; // Loading state
 
   @override
   void initState() {
@@ -44,13 +51,134 @@ class _OtpScreenState extends State<OtpScreen> {
   }
 
   void resendCode() {
+    for (var controller in controllers) {
+      controller.clear();
+    }
+    FocusScope.of(context).unfocus();
+
     setState(() {
       _start = 30; // Reset timer to 30 seconds
+      isLoading = true; // Set loading state to true
     });
     _timer?.cancel(); // Cancel the existing timer
     startTimer(); // Restart the countdown timer
-    // Add your code to resend the OTP here
+
+    // code to resend the OTP here
     print("Resending OTP...");
+    resend(widget.username);
+  }
+
+  void resend(String username) async {
+    try {
+      final response = await httpService.post('/auth/resend-code', {
+        'username': username,
+      });
+      print(response);
+      if (response['statusCode'] == 200) {
+        _showSuccessDialog(response['body']['message'], "resend");
+      } else {
+        // Handle other status codes
+        print(response);
+        _showErrorDialog(response['body']['message']);
+      }
+    } catch (e) {
+      print('Error: $e'); // Handle errors here
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).pop(); // Close loading dialog
+      _showErrorDialog('An error occurred. Please try again.');
+    } finally {
+      setState(() {
+        isLoading = false; // Reset loading state
+      });
+      print("done!");
+    }
+  }
+
+  void confirmOtp() async {
+    // Gather the OTP values
+    String otp = controllers.map((controller) => controller.text).join('');
+    print("Entered OTP: $otp");
+
+    // perform post request
+    try {
+      final response = await httpService.post('/auth/verify-code', {
+        'username': widget.username,
+        'code': otp,
+      });
+      print(response);
+      if (response['statusCode'] == 200) {
+        for (var controller in controllers) {
+          controller.clear();
+        }
+        // ignore: use_build_context_synchronously
+        FocusScope.of(context).unfocus();
+        _showSuccessDialog(response['body']['message'], "verify");
+      } else {
+        // Handle other status codes
+        print(response);
+        _showErrorDialog(response['body']['message']);
+      }
+    } catch (e) {
+      print('Error: $e'); // Handle errors here
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).pop(); // Close loading dialog
+      _showErrorDialog('An error occurred. Please try again.');
+    } finally {
+      setState(() {
+        isLoading = false; // Reset loading state
+      });
+      print("done!");
+    }
+  }
+
+  void _showSuccessDialog(String message, String action) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Success"),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close the dialog
+                if (action == "verify") {
+                  await secureStorage.delete(key: 'userOnboarding');
+                  Navigator.pushReplacement(
+                    // ignore: use_build_context_synchronously
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const Login(),
+                    ),
+                  );
+                }
+              },
+              child: const Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Error"),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   String maskEmail(String email) {
@@ -124,14 +252,14 @@ class _OtpScreenState extends State<OtpScreen> {
             Form(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(4, (index) {
+                children: List.generate(6, (index) {
                   return SizedBox(
                     height: 55,
                     width: 60,
                     child: TextField(
                       controller: controllers[index],
                       onChanged: (value) {
-                        if (value.length == 1 && index < 3) {
+                        if (value.length == 1 && index < 5) {
                           FocusScope.of(context).nextFocus();
                         } else if (value.isEmpty && index > 0) {
                           FocusScope.of(context).previousFocus();
@@ -187,20 +315,37 @@ class _OtpScreenState extends State<OtpScreen> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 20), // Increase height
                     ),
-                    child: const Text("Resend"),
+                    child: isLoading
+                        ? const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 20.0, // Adjusted width
+                                height: 20.0, // Adjusted height
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth:
+                                      2.0, // Keep the stroke width for visibility
+                                ),
+                              ),
+                              SizedBox(
+                                  width:
+                                      8), // Space between the indicator and the text
+                              Text(
+                                "Resending...",
+                                style: TextStyle(
+                                    color:
+                                        Colors.white), // Ensure text is visible
+                              ),
+                            ],
+                          )
+                        : const Text("Resend"),
                   ),
                 ),
                 const SizedBox(width: 10), // Space between buttons
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Gather the OTP values
-                      String otp = controllers
-                          .map((controller) => controller.text)
-                          .join('');
-                      print("Entered OTP: $otp");
-                      // Add further logic to verify the OTP
-                    },
+                    onPressed: confirmOtp,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           vertical: 20), // Increase height

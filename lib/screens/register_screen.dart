@@ -3,6 +3,8 @@ import 'package:ki_kati/components/http_servive.dart';
 import 'package:ki_kati/components/textfield_component.dart';
 import 'package:ki_kati/components/custom_button.dart';
 import 'package:ki_kati/screens/otp_screen.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'dart:convert';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -12,6 +14,7 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
+  final secureStorage = const FlutterSecureStorage();
   final HttpService httpService = HttpService('https://ki-kati.com/api');
   // Text editing controllers
   final usernameController = TextEditingController();
@@ -21,6 +24,7 @@ class _RegisterState extends State<Register> {
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
   final dateOfBirthController = TextEditingController();
+  final phoneNumberController = TextEditingController();
   String? selectedGender; // For gender selection
 
   // Date picker function
@@ -55,6 +59,7 @@ class _RegisterState extends State<Register> {
   String? _confirmPasswordError;
   String? _dobError;
   String? _genderError;
+  String? _phoneNumberError;
 
   // Validate inputs
   bool _validateInputs() {
@@ -80,6 +85,11 @@ class _RegisterState extends State<Register> {
         ? 'Date of birth cannot be empty'
         : null;
     _genderError = selectedGender == null ? 'Please select your gender' : null;
+    _phoneNumberError = phoneNumberController.text.isEmpty
+        ? 'Phone number cannot be empty'
+        : !RegExp(r'^\+?[0-9]{10,15}$').hasMatch(phoneNumberController.text)
+            ? 'Please enter a valid phone number'
+            : null;
 
     return _usernameError == null &&
         _firstNameError == null &&
@@ -88,7 +98,8 @@ class _RegisterState extends State<Register> {
         _passwordError == null &&
         _confirmPasswordError == null &&
         _dobError == null &&
-        _genderError == null;
+        _genderError == null &&
+        _phoneNumberError == null;
   }
 
   // Sign user in method
@@ -113,11 +124,22 @@ class _RegisterState extends State<Register> {
         'gender': selectedGender,
         'password': passwordController.text,
         'dateOfBirth': dateOfBirthController.text,
+        'phoneNumber': phoneNumberController.text,
       });
       print(response);
       if (response['statusCode'] == 201) {
         // Simulate success
-        _showSuccessDialog(response['body']['message']);
+
+        //await secureStorage.write(key: 'username', value: 'example@domain.com');
+        await secureStorage.write(
+            key: 'userOnboarding',
+            value:
+                '{"email": "${emailController.text}", "username": "${usernameController.text}"}');
+        String? userOnboardingJson =
+            await secureStorage.read(key: 'userOnboarding');
+        Map<String, dynamic> userData = jsonDecode(userOnboardingJson!);
+        _showSuccessDialog(response['body']['message'], userData['email'],
+            userData['username']);
         _clearFields();
       } else {
         // Handle other status codes
@@ -134,7 +156,7 @@ class _RegisterState extends State<Register> {
     }
   }
 
-  void _showSuccessDialog(String message) {
+  void _showSuccessDialog(String message, String email, String username) {
     showDialog(
       context: context,
       builder: (context) {
@@ -143,8 +165,7 @@ class _RegisterState extends State<Register> {
             "Success",
             style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
           ),
-          content: const Text(
-              "Your account has been created and we sent you an access code, check your email!"),
+          content: Text(message),
           actions: [
             TextButton(
               onPressed: () {
@@ -153,7 +174,7 @@ class _RegisterState extends State<Register> {
                   context,
                   MaterialPageRoute(
                     builder: (context) =>
-                        OtpScreen(email: emailController.text),
+                        OtpScreen(email: email, username: username),
                   ),
                 );
               },
@@ -198,6 +219,7 @@ class _RegisterState extends State<Register> {
     passwordController.clear();
     confirmPasswordController.clear();
     dateOfBirthController.clear();
+    phoneNumberController.clear();
   }
 
   @override
@@ -293,6 +315,18 @@ class _RegisterState extends State<Register> {
                       suffixIcon:
                           const Icon(Icons.email, color: Color(0xFFBDBDBD)),
                       errorText: _emailError,
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Phone Number text field
+                    TextFieldComponent(
+                      controller: phoneNumberController,
+                      keyboardType: TextInputType.phone,
+                      hintText: 'Phone Number',
+                      obscureText: false,
+                      suffixIcon:
+                          const Icon(Icons.phone, color: Color(0xFFBDBDBD)),
+                      errorText: _phoneNumberError,
                     ),
                     const SizedBox(height: 10),
 
