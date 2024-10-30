@@ -160,7 +160,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.black),
               title: const Text("Sign Out"),
-              onTap: logout,
+              onTap: _isLoading ? null : logout, // Disable if loading
+              trailing: _isLoading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ) // Show spinning indicator if loading
+                  : null,
             ),
             ListTile(
               leading: const Icon(Icons.email, color: Colors.black),
