@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:ki_kati/screens/chat_screen.dart';
+import 'package:ki_kati/screens/notification_screen.dart';
+import 'package:ki_kati/screens/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -9,11 +12,26 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0; // To track the currently selected index
+  final List<Widget> _screens = [
+    const ChatScreen(),
+    const ChatScreen(),
+    const NotificationScreen(),
+    const SettingsScreen(),
+  ];
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index; // Update the selected index
     });
+    /*
+    if (index == 3) {
+      // Profile tab index
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const SettingsScreen()),
+      );
+    }
+    */
   }
 
   @override
@@ -31,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
           highlightColor: Colors.transparent, // Remove highlight color
         ),
         title: const Text(
-          "Home",
+          "Ki-Kati",
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
@@ -51,6 +69,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+
+      body: _screens[_selectedIndex], // Display the selected screen
+
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[

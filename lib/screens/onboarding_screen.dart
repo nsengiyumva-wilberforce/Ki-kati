@@ -11,6 +11,7 @@ class OnboardingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(0, 50.0, 0, 20.0),
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(20.0),

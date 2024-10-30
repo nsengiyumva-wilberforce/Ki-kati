@@ -69,7 +69,7 @@ class _LoginState extends State<Login> {
       });
       print(response);
       if (response['statusCode'] == 200) {
-        // Simulate success
+        // success
         setState(() {
           _isLoading = false; // Set loading to false
           // Reset the input fields
@@ -78,6 +78,9 @@ class _LoginState extends State<Login> {
           _generalError = null;
         });
 
+        await secureStorage.write(
+            key: 'authToken', value: response['body']['token']);
+        print("token saved to secure storage!");
         Navigator.push(
           // ignore: use_build_context_synchronously
           context,
@@ -113,7 +116,7 @@ class _LoginState extends State<Login> {
       appBar: AppBar(
         centerTitle: true,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Center(
           child: Column(
