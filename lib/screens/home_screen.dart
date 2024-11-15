@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ki_kati/screens/chat_screen.dart';
+import 'package:ki_kati/screens/feed_screen.dart';
 import 'package:ki_kati/screens/friend_requests_screen.dart';
 import 'package:ki_kati/screens/friends_screen.dart';
 import 'package:ki_kati/screens/group_screen.dart';
@@ -51,9 +52,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        foregroundColor: Colors.white,
         backgroundColor: Colors.black,
         leading: IconButton(
-          icon: const Icon(Icons.search, color: Colors.white), // Search icon
+          icon: const Icon(Icons.search), // Search icon
           onPressed: () {
             Navigator.push(
               // ignore: use_build_context_synchronously
@@ -67,25 +69,70 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         title: const Text(
           "Ki-Kati",
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(fontSize: 16),
         ),
         centerTitle: true,
         actions: [
-          TextButton.icon(
-            icon: const Icon(Icons.people, color: Colors.white),
-            label: const Text(
-              'Requests',
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-            onPressed: () {
-              Navigator.push(
-                // ignore: use_build_context_synchronously
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const FriendRequestScreen(),
-                ),
-              );
+          // Popup menu button to show a dropdown of actions
+          PopupMenuButton<String>(
+            color: Colors.black,
+            shadowColor: Colors.red,
+            onSelected: (value) {
+              // Perform action based on selected value
+              if (value == 'Requests') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FriendRequestScreen(),
+                  ),
+                );
+              } else if (value == 'News Feed') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FeedScreen(),
+                  ),
+                );
+              }
+              // Add more actions as needed
             },
+            itemBuilder: (BuildContext context) {
+              return [
+                const PopupMenuItem<String>(
+                  value: 'Requests',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.people,
+                        color: Colors.green,
+                        size: 18,
+                      ),
+                      SizedBox(width: 8),
+                      Text('Requests',
+                          style: TextStyle(fontSize: 14, color: Colors.white)),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'News Feed',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.favorite,
+                        color: Colors.red,
+                        size: 18,
+                      ),
+                      SizedBox(width: 8),
+                      Text('News Feed',
+                          style: TextStyle(fontSize: 14, color: Colors.white)),
+                    ],
+                  ),
+                ),
+                // Add more items as needed
+              ];
+            },
+            offset: const Offset(
+                0, 50), // Offset the menu 50 pixels below the button
           ),
         ],
       ),
@@ -104,8 +151,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Groups',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Friends',
+            icon: Icon(Icons.people),
+            label: 'My Friends',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),

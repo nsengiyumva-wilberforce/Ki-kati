@@ -7,7 +7,8 @@ void main() {
   runApp(
     ChangeNotifierProvider(
       create: (_) => SocketService(),
-      child: const MaterialApp(home: Splash()),
+      child:
+          const MaterialApp(debugShowCheckedModeBanner: false, home: Splash()),
     ),
   );
 }
