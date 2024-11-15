@@ -1,0 +1,246 @@
+import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:ki_kati/screens/message_screen.dart';
+import 'package:ki_kati/services/socket_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:provider/provider.dart'; // Import provider
+
+class ChatScreen extends StatefulWidget {
+  const ChatScreen({super.key});
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  SocketService? _socketService;
+  final secureStorage = const FlutterSecureStorage();
+  String? username;
+
+  @override
+  void initState() {
+    super.initState();
+    _socketService = Provider.of<SocketService>(context,
+        listen: false); // Access the socket service here
+    _socketService?.connect(); // Connect only once during the lifecycle
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    // Fetch the username asynchronously
+    username = await secureStorage.read(key: 'username');
+    print("Fetched username: $username");
+
+    // Trigger a rebuild after username is fetched
+    setState(() {});
+  }
+
+  /*
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // ignore: unnecessary_null_comparison
+    if (_socketService == null) {
+      // Now it's safe to access the provider
+      _socketService = Provider.of<SocketService>(context, listen: true);
+      _socketService
+          ?.connect(); // Connect to the socket when the screen is loaded
+    }
+  }
+  */
+
+  /*
+  @override
+  void dispose() {
+    _socketService?.disconnect(); // Disconnect when the screen is disposed
+    super.dispose();
+  }
+  */
+
+  // Get random color for avatars
+  Color getRandomColor() {
+    final random = Random();
+    return Color.fromRGBO(
+      random.nextInt(256), // Red value (0-255)
+      random.nextInt(256), // Green value (0-255)
+      random.nextInt(256), // Blue value (0-255)
+      1, // Full opacity
+    );
+  }
+
+  Color getAvatarColor(String name) {
+    final int hash = name.hashCode; // Hash the name or ID
+    return Color((hash & 0xFFFFFF) + 0xFF000000); // Convert hash to a color
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (username == null) {
+      // Display a loading indicator while waiting for the username
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Scaffold(
+      body: Column(
+        children: [
+          // Status section
+          /*
+          Container(
+            color: Colors.black,
+            padding: const EdgeInsets.all(10.0),
+            child: const SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+             
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  StatusItem(name: 'My status', icon: Icons.add),
+                  SizedBox(width: 10.0),
+                  StatusItem(name: 'Alex'),
+                  SizedBox(width: 10.0),
+                  StatusItem(name: 'Godwin'),
+                  SizedBox(width: 10.0),
+                  StatusItem(name: 'Betty'),
+                  SizedBox(width: 10.0),
+                  StatusItem(name: 'David'),
+                  SizedBox(width: 10.0),
+                  StatusItem(name: 'Godwin'),
+                  SizedBox(width: 10.0),
+                  StatusItem(name: 'Betty'),
+                  SizedBox(width: 10.0),
+                  StatusItem(name: 'David'),
+                ],
+              ),
+            ),
+          ),*/
+          // Chats list
+          Expanded(
+            child: Consumer<SocketService>(
+              builder: (context, socketService, child) {
+                final activeUsers = socketService.activeUsers;
+
+                return ListView.builder(
+                  itemCount: activeUsers.length,
+                  itemBuilder: (context, index) {
+                    final user = activeUsers[index];
+                    return ChatItem(
+                      name: user['socketId']['username'] ??
+                          'Unknown', // Adjust depending on your data structure
+                      message: user['lastMessage'] ?? 'No recent messages',
+                      time: user['lastActive'] ??
+                          'Unknown', // Adjust based on your data structure
+                      unreadCount: user['unreadCount'] ??
+                          0, // Adjust based on your data structure
+                      avatarColor: getRandomColor(),
+                      onTap: () {
+                        // You can pass the active user's details to the message screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MessageScreen(
+                              currentUserId: username ??
+                                  "unknown", // Replace with actual current user ID
+                              connectionDetails: user['socketId']
+                                      ['connection_details'] ??
+                                  'unknown',
+                              targetUserId: user['userId'] ??
+                                  "unknown", // Replace with the target user's ID
+                              targetUsername: user['socketId']['username'] ??
+                                  'unknown', // The username of the target user
+                              targetProfileImage: user['profileImage'] ??
+                                  'https://www.pngarts.com/files/5/User-Avatar-Free-PNG-Image.png', // The URL of the target user's profile image
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class StatusItem extends StatelessWidget {
+  final String name;
+  final IconData? icon;
+
+  const StatusItem({super.key, required this.name, this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 28,
+          backgroundColor: icon != null ? Colors.green : Colors.blue,
+          //backgroundColor: getAvatarColor(user['username']),
+          child: icon != null
+              ? Icon(icon, color: Colors.white)
+              : Text(name[0], style: const TextStyle(color: Colors.white)),
+        ),
+        const SizedBox(height: 5),
+        Text(name, style: const TextStyle(color: Colors.white)),
+      ],
+    );
+  }
+}
+
+class ChatItem extends StatelessWidget {
+  final String name;
+  final String message;
+  final String time;
+  final int unreadCount;
+  final Color avatarColor;
+  final VoidCallback onTap;
+
+  const ChatItem({
+    super.key,
+    required this.name,
+    required this.message,
+    required this.time,
+    required this.unreadCount,
+    required this.avatarColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: avatarColor,
+          child: Text(name[0], style: const TextStyle(color: Colors.white)),
+        ),
+        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(message),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(time, style: const TextStyle(color: Colors.grey)),
+            if (unreadCount > 0)
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '$unreadCount',
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}

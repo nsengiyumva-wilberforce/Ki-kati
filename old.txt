@@ -1,0 +1,495 @@
+import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:ki_kati/screens/message_screen.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+class ChatScreen extends StatefulWidget {
+  const ChatScreen({super.key});
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  final secureStorage = const FlutterSecureStorage();
+  List<dynamic> activeUsers = []; // List to store active users
+  @override
+  void initState() {
+    super.initState();
+    connectToSocket();
+  }
+
+  Future<void> connectToSocket() async {
+    IO.Socket socket = IO.io('https://ki-kati.com', <String, dynamic>{
+      'transports': ['websocket'], // Required for Flutter Web support
+      'autoConnect': false,
+      'auth': {
+        'token': await secureStorage.read(
+            key: 'authToken'), // Pass the token for authentication
+      },
+    });
+
+    // Connecting to the server
+    socket.connect();
+
+    // Listen for connection events
+    socket.onConnect((_) {
+      print('Connected to the server');
+      // Send a test message after connecting
+      //socket.emit('message', 'Hello from Flutter!');
+
+      // Register the user on connect (replace 'username' with actual username)
+      socket.emit('registerUser', 'engdave');
+
+      // Listen for 'activeUsers' event to get the list of online users
+      socket.on('activeUsers', (data) {
+        print('Active users: $data');
+        //update active users with the data that has been received
+        setState(() {
+          activeUsers = List.from(data); // Save the active users list
+        });
+      });
+    });
+
+    // Handle connection errors
+    socket.on('connect_error', (error) {
+      print('Connection error: $error');
+    });
+
+    // Handle connection timeout
+    socket.on('connect_timeout', (_) {
+      print('Connection timed out');
+    });
+
+    // Optional: handle reconnection attempts
+    socket.onReconnectAttempt((attempt) {
+      print('Reconnection attempt #$attempt');
+    });
+
+    // Listen for messages from the server
+    //socket.on('message', (data) {
+    //  print('Received message: $data');
+    //});
+
+    // Listen for disconnection
+    socket.onDisconnect((_) {
+      print('Disconnected from the server');
+    });
+  }
+
+  // Check if a user is in the active users list
+  bool isUserActive(String userId) {
+    return activeUsers.any((user) => user['id'] == userId);
+  }
+
+  // Get random color for avatars
+  Color getRandomColor() {
+    final random = Random();
+    return Color.fromRGBO(
+      random.nextInt(256), // Red value (0-255)
+      random.nextInt(256), // Green value (0-255)
+      random.nextInt(256), // Blue value (0-255)
+      1, // Full opacity
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          // Status section
+          Container(
+            color: Colors.black,
+            padding: const EdgeInsets.all(10.0),
+            child: const SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  StatusItem(name: 'My status', icon: Icons.add),
+                  SizedBox(width: 10.0),
+                  StatusItem(name: 'Alex'),
+                  SizedBox(width: 10.0),
+                  StatusItem(name: 'Godwin'),
+                  SizedBox(width: 10.0),
+                  StatusItem(name: 'Betty'),
+                  SizedBox(width: 10.0),
+                  StatusItem(name: 'David'),
+                  SizedBox(width: 10.0),
+                  StatusItem(name: 'Godwin'),
+                  SizedBox(width: 10.0),
+                  StatusItem(name: 'Betty'),
+                  SizedBox(width: 10.0),
+                  StatusItem(name: 'David'),
+                ],
+              ),
+            ),
+          ),
+          // Chats list
+          Expanded(
+            child: ListView(
+              children: [
+                ChatItem(
+                  name: 'Mugisha Ivan',
+                  message: 'How are you today?',
+                  time: '2 min ago',
+                  unreadCount: 3,
+                  avatarColor: getRandomColor(),
+                )
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class StatusItem extends StatelessWidget {
+  final String name;
+  final IconData? icon;
+
+  const StatusItem({super.key, required this.name, this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 28,
+          backgroundColor: icon != null ? Colors.green : Colors.blue,
+          child: icon != null
+              ? Icon(icon, color: Colors.white)
+              : Text(name[0], style: const TextStyle(color: Colors.white)),
+        ),
+        const SizedBox(height: 5),
+        Text(name, style: const TextStyle(color: Colors.white)),
+      ],
+    );
+  }
+}
+
+class ChatItem extends StatelessWidget {
+  final String name;
+  final String message;
+  final String time;
+  final int unreadCount;
+  final Color avatarColor;
+
+  const ChatItem({
+    super.key,
+    required this.name,
+    required this.message,
+    required this.time,
+    required this.unreadCount,
+    required this.avatarColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        // You can perform any action here when the item is clicked
+        // For example, navigate to a detailed chat screen or show a message
+        print("Chat with $name clicked!");
+        // You can navigate to a new screen with Navigator.push()
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MessageScreen(
+              currentUserId:
+                  'your_user_id', // Replace with actual current user ID
+              targetUserId:
+                  'target_user_id', // Replace with the ID of the target user
+              targetUsername: name, // The username of the target user
+              targetProfileImage:
+                  'url_to_profile_image', // The URL of the target user's profile image
+            ),
+          ),
+        );
+      },
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: avatarColor,
+          child: Text(name[0], style: const TextStyle(color: Colors.white)),
+        ),
+        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(message),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(time, style: const TextStyle(color: Colors.grey)),
+            if (unreadCount > 0)
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '$unreadCount',
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+
+
+import 'package:flutter/material.dart';
+import 'package:ki_kati/components/custom_button.dart';
+import 'package:ki_kati/components/http_servive.dart';
+
+class KikatiGroup extends StatefulWidget {
+  const KikatiGroup({super.key});
+
+  @override
+  State<KikatiGroup> createState() => _KikatiGroupState();
+}
+
+class _KikatiGroupState extends State<KikatiGroup> {
+  final TextEditingController _groupNameController = TextEditingController();
+  final HttpService httpService = HttpService("https://ki-kati.com/api");
+
+  bool _isLoading = false;
+  bool isLoading = false;
+
+  List<Map<String, dynamic>> friends = [];
+  Set<String> selectedFriends = {}; // Set to track selected friends by userId
+  Set<String> selectedUsernames = {};
+
+  Future<void> getFriends() async {
+    setState(() {
+      isLoading = true; // Start loading
+    });
+
+    try {
+      final response = await httpService.get('/users/friends'); // Get friends
+      print("These are the friends");
+      print(response);
+      setState(() {
+        friends = List.from(response);
+      });
+    } catch (e) {
+      setState(() {
+        friends = [];
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to load friends')),
+      );
+    } finally {
+      setState(() {
+        isLoading = false; // Stop loading
+      });
+    }
+  }
+
+  // Handle user selection based on the userId
+  void _toggleUserSelection(String userId, String username) {
+    setState(() {
+      if (selectedFriends.contains(userId)) {
+        selectedFriends.remove(userId);
+      } else {
+        selectedFriends.add(userId);
+      }
+
+      //remove and add usernames
+      if (selectedUsernames.contains(username)) {
+        selectedUsernames.remove(username);
+      } else {
+        selectedUsernames.add(username);
+      }
+    });
+  }
+
+  // Get initials from the user's name
+  String _getInitials(String firstName, String lastName) {
+    return '${firstName[0]}${lastName[0]}'.toUpperCase();
+  }
+
+  // Handle the group creation action
+  Future<void> _createGroup() async {
+    String groupName = _groupNameController.text.trim();
+
+    if (groupName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Group name cannot be empty')));
+    } else if (selectedFriends.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select at least one user')));
+    } else {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final response = await httpService.post('/groups/create', {
+          'name': groupName,
+          'members': selectedFriends.toList(), // Use userId for members
+        });
+
+        print("response for creating the groups here");
+        print(response);
+        print(selectedFriends.toList());
+
+        // Simulate group creation response
+        if (response['statusCode'] == 201) {
+          // ignore: use_build_context_synchronously
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(
+                  'Group "$groupName" created with members: ${selectedUsernames.join(", ")}')));
+        } else {
+          // ignore: use_build_context_synchronously
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Failed to create group')));
+        }
+      } catch (e) {
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getFriends(); // Fetch friends on initialization
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Need a group?",
+              style: TextStyle(
+                fontSize: 24.0,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            /*
+            const SizedBox(height: 20),
+            const Text(
+              "Make A Group For TeamWork & Other Collaborations",
+              style: TextStyle(
+                  fontSize: 40.0,
+                  fontFamily: "Roboto",
+                  fontWeight: FontWeight.w400,
+                  height: 1.2,
+                  letterSpacing: 2),
+            ),
+            */
+            const SizedBox(height: 30),
+            TextField(
+              controller: _groupNameController,
+              decoration: const InputDecoration(
+                labelText: "Group Name",
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.group),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "Select Users to Add:",
+              style: TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 10),
+            isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : GridView.builder(
+                    shrinkWrap: true,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
+                    itemCount: friends.length,
+                    itemBuilder: (context, index) {
+                      final friend = friends[index];
+                      final userId =
+                          friend['_id']; // Using userId instead of username
+                      final username = friend['username'];
+                      final firstName = friend['firstName'];
+                      final lastName = friend['lastName'];
+                      final fullName = '$firstName $lastName';
+                      final initials = _getInitials(firstName, lastName);
+
+                      return GestureDetector(
+                        onTap: () => _toggleUserSelection(
+                            userId, username), // Toggle using userId
+                        child: Column(
+                          children: [
+                            CircleAvatar(
+                              radius: 35.0,
+                              backgroundImage: const AssetImage(
+                                'images.user.png',
+                              ),
+                              backgroundColor: selectedFriends.contains(userId)
+                                  ? Colors.blue
+                                  : Colors.grey,
+                              child: selectedFriends.contains(userId)
+                                  ? const Icon(Icons.check, color: Colors.white)
+                                  : Text(
+                                      initials, // Show initials as fallback
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              fullName,
+                              style: const TextStyle(
+                                fontSize: 12.0,
+                                fontWeight: FontWeight.w500,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+            const SizedBox(height: 20),
+            CustomButton(
+              onTap: _createGroup,
+              buttonText: _isLoading
+                  ? "Creating the group, please wait ..."
+                  : "Create Group",
+              isLoading: _isLoading,
+              color: _isLoading
+                  ? const Color.fromARGB(255, 38, 34, 34)
+                  : Colors.blue,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

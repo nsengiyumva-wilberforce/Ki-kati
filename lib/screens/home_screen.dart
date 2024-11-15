@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ki_kati/screens/chat_screen.dart';
-import 'package:ki_kati/screens/notification_screen.dart';
+import 'package:ki_kati/screens/friend_requests_screen.dart';
+import 'package:ki_kati/screens/friends_screen.dart';
+import 'package:ki_kati/screens/group_screen.dart';
+import 'package:ki_kati/screens/search_screen.dart';
 import 'package:ki_kati/screens/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,8 +17,8 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0; // To track the currently selected index
   final List<Widget> _screens = [
     const ChatScreen(),
-    const ChatScreen(),
-    const NotificationScreen(),
+    const KikatiGroup(),
+    const FriendsScreen(),
     const SettingsScreen(),
   ];
 
@@ -35,6 +38,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // get current username from secure storage
+  }
+
+  void _onActionSelected(String action) {
+    print("Action selected: $action");
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -42,8 +55,12 @@ class _HomeScreenState extends State<HomeScreen> {
         leading: IconButton(
           icon: const Icon(Icons.search, color: Colors.white), // Search icon
           onPressed: () {
-            // Add your onPressed code here!
-          },
+            Navigator.push(
+              // ignore: use_build_context_synchronously
+              context,
+              MaterialPageRoute(builder: (context) => const SearchScreen()),
+            );
+          }, // Open the search modal on press
           padding: const EdgeInsets.all(6.0), // Adjust padding for smaller size
           splashColor: Colors.transparent, // Remove splash color
           highlightColor: Colors.transparent, // Remove highlight color
@@ -54,18 +71,21 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: true,
         actions: [
-          Container(
-            decoration: const BoxDecoration(
-              color: Colors.green, // Background color for the settings icon
-              shape: BoxShape.circle,
+          TextButton.icon(
+            icon: const Icon(Icons.people, color: Colors.white),
+            label: const Text(
+              'Requests',
+              style: TextStyle(color: Colors.white, fontSize: 16),
             ),
-            child: IconButton(
-              icon: const Icon(Icons.verified_user_rounded),
-              color: Colors.white, // Icon color
-              onPressed: () {
-                // Add your onPressed code here!
-              },
-            ),
+            onPressed: () {
+              Navigator.push(
+                // ignore: use_build_context_synchronously
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FriendRequestScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -81,11 +101,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.search),
-            label: 'Search',
+            label: 'Groups',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
-            label: 'Notifications',
+            label: 'Friends',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),

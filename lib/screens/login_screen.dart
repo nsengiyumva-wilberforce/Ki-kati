@@ -67,8 +67,12 @@ class _LoginState extends State<Login> {
         'username': usernameController.text,
         'password': passwordController.text
       });
+      print("This is the login information");
       print(response);
       if (response['statusCode'] == 200) {
+        print("username saved to secure storage!");
+        await secureStorage.write(
+            key: 'username', value: usernameController.text);
         // success
         setState(() {
           _isLoading = false; // Set loading to false

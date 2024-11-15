@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ki_kati/components/http_servive.dart';
 import 'package:ki_kati/screens/onboarding_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:ki_kati/services/socket_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -13,6 +14,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final HttpService httpService = HttpService('https://ki-kati.com/api');
   final secureStorage = const FlutterSecureStorage();
+  SocketService? _socketService;
 
   bool _isLoading = false; // Loading state
 
@@ -32,10 +34,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         });
 
         await secureStorage.delete(key: 'authToken');
+        await secureStorage.delete(key: 'username');
+
+        //disconnect from the socket as well
+        _socketService?.disconnect();
+
+        /*
         // ignore: use_build_context_synchronously
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const OnboardingScreen()),
         );
+        */
       } else {
         // Handle other status codes
         setState(() {
@@ -51,6 +60,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() {
         _isLoading = false; // Set loading to false
       });
+      await secureStorage.delete(key: 'authToken');
+      await secureStorage.delete(key: 'username');
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+      );
     }
   }
 

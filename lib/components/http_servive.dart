@@ -13,6 +13,7 @@ class HttpService {
   Future<dynamic> get(String endpoint) async {
     final url = Uri.parse('$baseUrl$endpoint');
     Map<String, String> headers = {};
+    print(url);
 
     final token = await secureStorage.read(key: 'authToken');
     if (token != null) {
@@ -65,6 +66,33 @@ class HttpService {
         };
       } else {
         throw Exception('Failed to post data: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
+
+  // Generic DELETE method
+  Future<dynamic> delete(String endpoint) async {
+    final url = Uri.parse('$baseUrl$endpoint');
+    Map<String, String> headers = {};
+
+    final token = await secureStorage.read(key: 'authToken');
+    if (token != null) {
+      headers['Authorization'] =
+          'Bearer $token'; // Add authorization header if token is available
+    }
+
+    try {
+      final response = await http.delete(url, headers: headers);
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return {
+          'statusCode': response.statusCode,
+          'body': jsonDecode(response.body),
+        };
+      } else {
+        throw Exception('Failed to delete data: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error: $e');

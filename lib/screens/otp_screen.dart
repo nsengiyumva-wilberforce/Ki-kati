@@ -255,7 +255,7 @@ class _OtpScreenState extends State<OtpScreen> {
                 children: List.generate(6, (index) {
                   return SizedBox(
                     height: 55,
-                    width: 60,
+                    width: 45,
                     child: TextField(
                       controller: controllers[index],
                       onChanged: (value) {
