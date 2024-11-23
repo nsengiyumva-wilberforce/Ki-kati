@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:ki_kati/components/secureStorageServices.dart';
 import 'package:ki_kati/screens/home_screen.dart';
 import 'package:ki_kati/screens/onboarding_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'dart:convert';
-
 import 'package:ki_kati/screens/otp_screen.dart';
+import 'dart:convert';
 
 class Splash extends StatefulWidget {
   const Splash({super.key});
@@ -16,6 +16,7 @@ class Splash extends StatefulWidget {
 
 class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
   final secureStorage = const FlutterSecureStorage();
+  SecureStorageService storageService = SecureStorageService();
 
   @override
   void initState() {
@@ -29,9 +30,12 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
   }
 
   Future<void> checkToken() async {
-    // Attempt to retrieve the token
+    // Retrieve user data using the key 'user_data'
+    Map<String, dynamic>? retrievedUserData =
+        await storageService.retrieveData('user_data');
 
-    final token = await secureStorage.read(key: 'authToken');
+    final token = retrievedUserData?['token'];
+
     String? userOnboardingJson =
         await secureStorage.read(key: 'userOnboarding');
 

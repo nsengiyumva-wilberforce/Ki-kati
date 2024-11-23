@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ki_kati/components/http_servive.dart';
+import 'package:ki_kati/components/secureStorageServices.dart';
 import 'package:ki_kati/components/textfield_component.dart';
 import 'package:ki_kati/components/social_icon_button.dart';
 import 'package:ki_kati/components/custom_button.dart';
@@ -16,6 +17,9 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   final secureStorage = const FlutterSecureStorage();
+  SecureStorageService storageService =
+      SecureStorageService(); //service to handle secure storage of userData
+
   // Text editing controllers
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
@@ -31,6 +35,17 @@ class _LoginState extends State<Login> {
   void initState() {
     super.initState();
   }
+
+  /*
+    Map<String, dynamic> userData = {
+      "_id": "6733e770ef99b681bdfc4979",
+      "username": "engdave",
+      "firstName": "kinyonyi",
+      "lastName": "david hope",
+      "email": "kinyonyidavid@gmail.com",
+      "phoneNumber": "0787270058"
+    };
+   */
 
   // Sign user in method
   void signUserIn() async {
@@ -67,12 +82,9 @@ class _LoginState extends State<Login> {
         'username': usernameController.text,
         'password': passwordController.text
       });
-      print("This is the login information");
-      print(response);
+
       if (response['statusCode'] == 200) {
         print("username saved to secure storage!");
-        await secureStorage.write(
-            key: 'username', value: usernameController.text);
         // success
         setState(() {
           _isLoading = false; // Set loading to false
@@ -82,8 +94,11 @@ class _LoginState extends State<Login> {
           _generalError = null;
         });
 
-        await secureStorage.write(
-            key: 'authToken', value: response['body']['token']);
+        //await secureStorage.write(key: 'authToken', value: response['body']['token']);
+
+        //store userInformation to secure storage!
+        await storageService.storeData('user_data', response['body']);
+
         print("token saved to secure storage!");
         Navigator.push(
           // ignore: use_build_context_synchronously

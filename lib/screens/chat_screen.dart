@@ -1,9 +1,9 @@
 import 'package:intl/intl.dart'; // For date formatting
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:ki_kati/components/secureStorageServices.dart';
 import 'package:ki_kati/screens/message_screen.dart';
 import 'package:ki_kati/services/socket_service.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:ki_kati/components/http_servive.dart';
 import 'package:provider/provider.dart'; // Import provider
 
@@ -19,7 +19,8 @@ class _ChatScreenState extends State<ChatScreen> {
   bool isLoading = false; // Track loading state
 
   SocketService? _socketService;
-  final secureStorage = const FlutterSecureStorage();
+  SecureStorageService storageService = SecureStorageService();
+
   String? username;
 
   List<Map<String, dynamic>> friends = []; // Friend list from API response
@@ -66,7 +67,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _initialize() async {
     // Fetch the username asynchronously
-    username = await secureStorage.read(key: 'username');
+    Map<String, dynamic>? retrievedUserData =
+        await storageService.retrieveData('user_data');
+    username = retrievedUserData?['user']['username'];
     print("Fetched username: $username");
 
     // Trigger a rebuild after username is fetched

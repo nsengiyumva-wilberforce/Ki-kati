@@ -1,7 +1,113 @@
+Future<void> uploadFile(String filePath, String url, Map<String, String> additionalData) async {
+  var uri = Uri.parse(url);
+  var request = http.MultipartRequest('POST', uri);
+
+  // Add additional form fields (text data)
+  additionalData.forEach((key, value) {
+    request.fields[key] = value;
+  });
+
+  // Add file
+  var file = await http.MultipartFile.fromPath(
+    'file', // field name in the request
+    filePath,
+    contentType: MediaType('image', 'jpeg'), // Adjust the content type based on your file
+  );
+  
+  request.files.add(file);
+
+  // Send the request
+  var response = await request.send();
+
+  if (response.statusCode == 200) {
+    print('File uploaded successfully!');
+  } else {
+    print('Failed to upload file. Status: ${response.statusCode}');
+  }
+}
+
+
+
+
+
+
+
+void main() async {
+  String filePath = '/path/to/your/file.jpg';
+  String uploadUrl = 'https://yourserver.com/upload';
+  Map<String, String> data = {
+    'username': 'exampleUser',
+    'email': 'example@example.com',
+  };
+
+  await uploadFile(filePath, uploadUrl, data);
+}
+
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^0.14.0
+  path_provider: ^2.0.10
+
+
+https://dev.to/carminezacc/advanced-flutter-networking-part-1-uploading-a-file-to-a-rest-api-from-flutter-using-a-multi-part-form-data-post-request-2ekm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import 'package:flutter/material.dart';
 import 'package:ki_kati/components/post_component.dart';
 import 'package:ki_kati/components/http_servive.dart';
-import 'package:ki_kati/components/secureStorageServices.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -11,7 +117,6 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  SecureStorageService storageService = SecureStorageService();
   final HttpService httpService = HttpService("https://ki-kati.com/api/posts");
   bool _isLoading = false;
   final TextEditingController _titleController = TextEditingController();
@@ -26,7 +131,7 @@ class _FeedScreenState extends State<FeedScreen> {
     });
   }
 
-  List<Post> posts = [];
+  List<Map<String, dynamic>> availablePosts = [];
 
   Future<void> getPosts() async {
     try {
@@ -45,25 +150,23 @@ class _FeedScreenState extends State<FeedScreen> {
           id: postData['_id'].toString(),
           userId: postData['author']['_id'],
           username: postData['author']['username'],
-          userThumbnailUrl: postData['author']['profileImage'] ??
-              'https://cdn-icons-png.flaticon.com/512/9131/9131529.png',
+          userThumbnailUrl: postData['author']['profileImage'] ?? '',
           text: postData['content'],
           imageUrl: postData['media'].isNotEmpty ? postData['media'][0] : null,
           timestamp: DateTime.parse(postData['createdAt']),
-          likes: List<String>.from(postData['likes'] ?? []),
-          //comments: List<String>.from(postData['comments'] ?? []),
-          comments: List<Map<String, dynamic>>.from(
-              postData['comments'] ?? []), // Fix comment structure
+          likes: 0,
+          comments: List<String>.from(postData['comments'] ?? []),
         );
       }).toList();
 
       // Update state with the fetched posts
       setState(() {
-        posts = loadedPosts;
+        availablePosts = loadedPosts.cast<Map<String, dynamic>>();
       });
+      
     } catch (e) {
       setState(() {
-        posts = [];
+        availablePosts = [];
       });
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
@@ -76,83 +179,32 @@ class _FeedScreenState extends State<FeedScreen> {
     }
   }
 
-  void _likePost(String postId) async {
-    Map<String, dynamic>? retrievedUserData =
-        await storageService.retrieveData('user_data');
+  List<Post> posts = [
+    Post(
+      id: '1',
+      userId: 'u1',
+      username: 'engdave',
+      userThumbnailUrl:
+          'https://cdn-icons-png.flaticon.com/512/9131/9131529.png',
+      text:
+          "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. I",
+      imageUrl:
+          'https://cdn.pixabay.com/photo/2017/12/08/11/53/event-party-3005668_1280.jpg',
+      timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
+    )
+  ];
 
-    if (retrievedUserData != null) {
-      print("Retrieved User ID: ${retrievedUserData['user']['_id']}");
-      setState(() {
-        final post = posts.firstWhere((post) => post.id == postId);
-        post.toggleLike(retrievedUserData['user'][
-            '_id']); //toogle the current user add complete modifying the code at this point when you et to power source
-      });
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final response = await httpService.post('/$postId/like', {});
-      print(response);
-      if (response['statusCode'] == 200) {
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(response['body']['message'])));
-      } else {
-        final String errorMessage =
-            response['body']['message'] ?? 'Something went wrong';
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red[400],
-        ));
-      }
-    } catch (e) {
-      print('Error: $e'); // Handle errors here
-    } finally {
-      setState(() {
-        _isLoading = false; // Set loading to false
-      });
-    }
-  }
-
-  void _addComment(String postId, String comment) async {
-    try {
-      final response =
-          await httpService.post('/$postId/comment', {'content': comment});
-      print(response);
-      if (response['statusCode'] == 200) {
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(response['body']['message'])));
-      } else {
-        final String errorMessage =
-            response['body']['message'] ?? 'Something went wrong';
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red[400],
-        ));
-      }
-    } catch (e) {
-      print('Error: $e'); // Handle errors here\
-    } finally {
-      setState(() {
-        _isLoading = false; // Set loading to false
-      });
-    }
-
-    //add overall comment eventually
+  void _likePost(String postId) {
     setState(() {
       final post = posts.firstWhere((post) => post.id == postId);
-      post.addComment({
-        'content': comment, // Add the comment text here
-        'author': post.userId, // Add the author's user ID or info
-        'timestamp':
-            DateTime.now().toIso8601String(), // Optionally add a timestamp
-      });
+      post.toggleLike();
+    });
+  }
+
+  void _addComment(String postId, String comment) {
+    setState(() {
+      final post = posts.firstWhere((post) => post.id == postId);
+      post.addComment(comment);
     });
   }
 
@@ -327,33 +379,15 @@ class _FeedScreenState extends State<FeedScreen> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          ListView.builder(
-            itemCount: posts.length,
-            itemBuilder: (context, index) {
-              return PostWidget(
-                post: posts[index],
-                onLike: _likePost,
-                onComment: (comment) => _addComment(posts[index].id, comment),
-              );
-            },
-          ),
-
-          // If _isLoading is true, show the loading overlay
-          if (_isLoading)
-            Positioned.fill(
-              child: Container(
-                color:
-                    Colors.black.withOpacity(0.3), // Semi-transparent overlay
-                child: const Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                ),
-              ),
-            ),
-        ],
+      body: ListView.builder(
+        itemCount: posts.length,
+        itemBuilder: (context, index) {
+          return PostWidget(
+            post: posts[index],
+            onLike: _likePost,
+            onComment: (comment) => _addComment(posts[index].id, comment),
+          );
+        },
       ),
     );
   }

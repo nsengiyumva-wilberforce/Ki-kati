@@ -1,21 +1,26 @@
 // lib/services/http_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:ki_kati/components/secureStorageServices.dart';
 
 class HttpService {
   final String baseUrl;
-  final secureStorage = const FlutterSecureStorage();
+  SecureStorageService storageService = SecureStorageService();
 
   HttpService(this.baseUrl);
 
   // Generic GET method
   Future<dynamic> get(String endpoint) async {
+    // Retrieve user data using the key 'user_data'
+    Map<String, dynamic>? retrievedUserData =
+        await storageService.retrieveData('user_data');
+
     final url = Uri.parse('$baseUrl$endpoint');
     Map<String, String> headers = {};
     print(url);
 
-    final token = await secureStorage.read(key: 'authToken');
+    final token = retrievedUserData?['token'];
+
     if (token != null) {
       headers['Authorization'] =
           'Bearer $token'; // Add authorization header if token is available
@@ -36,7 +41,10 @@ class HttpService {
   // Generic POST method
   Future<dynamic> post(String endpoint, Map<String, dynamic> data) async {
     final url = Uri.parse('$baseUrl$endpoint');
-    final token = await secureStorage.read(key: 'authToken');
+
+    Map<String, dynamic>? retrievedUserData =
+        await storageService.retrieveData('user_data');
+    final token = retrievedUserData?['token'];
 
     Map<String, String> headers = {
       'Content-Type': 'application/json',
@@ -77,7 +85,10 @@ class HttpService {
     final url = Uri.parse('$baseUrl$endpoint');
     Map<String, String> headers = {};
 
-    final token = await secureStorage.read(key: 'authToken');
+    Map<String, dynamic>? retrievedUserData =
+        await storageService.retrieveData('user_data');
+    final token = retrievedUserData?['token'];
+
     if (token != null) {
       headers['Authorization'] =
           'Bearer $token'; // Add authorization header if token is available

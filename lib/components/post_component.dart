@@ -68,7 +68,7 @@ class _PostWidgetState extends State<PostWidget> {
                     widget.onLike(widget.post.id);
                   },
                 ),
-                Text(widget.post.likes.toString()),
+                Text(widget.post.likes.length.toString()),
                 const Spacer(),
                 IconButton(
                   icon: Icon(
@@ -162,8 +162,9 @@ class Post {
   final String text;
   final String? imageUrl;
   final DateTime timestamp;
-  int likes;
-  List<String> comments;
+  //int likes;
+  List<String> likes; // List of user IDs who liked the post
+  List<Map<String, dynamic>> comments; // List of maps for comments
 
   Post({
     required this.id,
@@ -173,17 +174,35 @@ class Post {
     required this.text,
     this.imageUrl,
     required this.timestamp,
-    this.likes = 0,
-    List<String>?
-        comments, // This can now be passed as an argument to initialize the list
-  }) : comments =
-            comments ?? []; // Default to an empty list if none is provided
+    //this.likes = 0,
+    List<String>? likes, // List of user IDs for likes
+    List<Map<String, dynamic>>? comments, // List of maps for comments
+  })  : comments = comments ?? [],
+        likes = likes ?? []; // Default to an empty list if none is provided
 
-  void addComment(String comment) {
+  void addComment(Map<String, dynamic> comment) {
     comments.add(comment);
   }
 
-  void toggleLike() {
-    likes += 1;
+  // Add a like from a user (by user ID)
+  void addLike(String userId) {
+    if (!likes.contains(userId)) {
+      likes.add(
+          userId); // Add the user ID to the likes list if not already present
+    }
+  }
+
+  // Remove a like from a user (by user ID)
+  void removeLike(String userId) {
+    likes.remove(userId); // Remove the user ID from the likes list
+  }
+
+  // Toggle the like status (like if not liked, unlike if already liked)
+  void toggleLike(String userId) {
+    if (likes.contains(userId)) {
+      removeLike(userId); // If already liked, unlike
+    } else {
+      addLike(userId); // If not liked, add the like
+    }
   }
 }
