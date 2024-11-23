@@ -135,6 +135,7 @@ class _FeedScreenState extends State<FeedScreen> {
       post.toggleLike(retrievedUserData?['user'][
           '_id']); //toogle the current user add complete modifying the code at this point when you et to power source
     });
+
   }
 
   void _addComment(String postId, String comment) async {

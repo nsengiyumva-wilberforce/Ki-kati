@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:ki_kati/screens/post_details_screen.dart';
 
 class PostWidget extends StatefulWidget {
   final Post post;
@@ -69,6 +70,36 @@ class _PostWidgetState extends State<PostWidget> {
                   },
                 ),
                 Text(widget.post.likes.length.toString()),
+                const Spacer(),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            PostDetailsScreen(post: widget.post),
+                      ),
+                    );
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize
+                        .min, // Make the row take up only as much space as needed
+                    children: [
+                      Icon(
+                        Icons.visibility,
+                        color: Colors.amber[700],
+                        size: 14, // Adjust icon size as needed
+                      ),
+                      const SizedBox(
+                          width: 8), // Space between the icon and text
+                      const Text(
+                        "comments",
+                        style: TextStyle(
+                            fontSize: 14), // Adjust text style if needed
+                      ),
+                    ],
+                  ),
+                ),
                 const Spacer(),
                 IconButton(
                   icon: Icon(
@@ -187,7 +218,8 @@ class Post {
   // Add a like from a user (by user ID)
   void addLike(String userId) {
     if (!likes.contains(userId)) {
-      likes.add(userId); // Add the user ID to the likes list if not already present
+      likes.add(
+          userId); // Add the user ID to the likes list if not already present
     }
   }
 
