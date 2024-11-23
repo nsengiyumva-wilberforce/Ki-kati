@@ -1,6 +1,6 @@
 import 'dart:async';
+import 'package:ki_kati/components/secureStorageServices.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/foundation.dart'; // For ChangeNotifier
 import 'package:ki_kati/components/http_servive.dart';
 
@@ -8,7 +8,7 @@ class SocketService with ChangeNotifier {
   static final SocketService _singleton = SocketService._internal();
   late IO.Socket socket;
 
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  SecureStorageService storageService = SecureStorageService();
 
   // List to store active users
   //List<String> activeUsers = [];
@@ -48,12 +48,16 @@ class SocketService with ChangeNotifier {
   }
 
   Future<void> connect() async {
-    String? username = await _secureStorage.read(key: 'username');
+    print("attempting to connect to socket");
+    Map<String, dynamic>? retrievedUserData =
+        await storageService.retrieveData('user_data');
+    String? username = retrievedUserData?['user']['username'];
+
     socket = IO.io('https://ki-kati.com', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
       'auth': {
-        'token': await _secureStorage.read(key: 'authToken'),
+        'token': retrievedUserData?['token'],
       },
     });
 

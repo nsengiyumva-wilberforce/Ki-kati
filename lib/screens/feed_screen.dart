@@ -12,6 +12,9 @@ class FeedScreen extends StatefulWidget {
 
 class _FeedScreenState extends State<FeedScreen> {
   SecureStorageService storageService = SecureStorageService();
+
+  Map<String, dynamic>? retrievedUserData;
+
   final HttpService httpService = HttpService("https://ki-kati.com/api/posts");
   bool _isLoading = false;
   final TextEditingController _titleController = TextEditingController();
@@ -77,37 +80,48 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   void _likePost(String postId) async {
-    Map<String, dynamic>? retrievedUserData =
-        await storageService.retrieveData('user_data');
-
-    if (retrievedUserData != null) {
-      print("Retrieved User ID: ${retrievedUserData['user']['_id']}");
-      setState(() {
-        final post = posts.firstWhere((post) => post.id == postId);
-        post.toggleLike(retrievedUserData['user'][
-            '_id']); //toogle the current user add complete modifying the code at this point when you et to power source
-      });
-    }
+    //set loading to true
 
     setState(() {
       _isLoading = true;
     });
+    print("Retrieved User ID: ${retrievedUserData?['user']['_id']}");
 
+    //check for the post to like or unlike from the posts available
+    final post = posts.firstWhere((post) => post.id == postId);
+
+    print("Retrieved User ID Inside: ${retrievedUserData?['user']['_id']}");
     try {
-      final response = await httpService.post('/$postId/like', {});
+      // Determine whether to like or unlike the post
+      final String endpoint =
+          post.likes.contains(retrievedUserData?['user']['_id'])
+              ? '/$postId/unlike'
+              : '/$postId/like';
+
+      final response = await httpService.post(endpoint, {});
       print(response);
+
       if (response['statusCode'] == 200) {
+        // Determine the background color based on the action
+        Color? backgroundColor =
+            endpoint.contains("unlike") ? Colors.red[400] : null;
         // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(response['body']['message'])));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['body']['message']),
+            backgroundColor: backgroundColor,
+          ),
+        );
       } else {
         final String errorMessage =
             response['body']['message'] ?? 'Something went wrong';
         // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red[400],
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red[400],
+          ),
+        );
       }
     } catch (e) {
       print('Error: $e'); // Handle errors here
@@ -116,6 +130,11 @@ class _FeedScreenState extends State<FeedScreen> {
         _isLoading = false; // Set loading to false
       });
     }
+
+    setState(() {
+      post.toggleLike(retrievedUserData?['user'][
+          '_id']); //toogle the current user add complete modifying the code at this point when you et to power source
+    });
   }
 
   void _addComment(String postId, String comment) async {
@@ -167,8 +186,30 @@ class _FeedScreenState extends State<FeedScreen> {
         'title': _titleController.text,
       });
       print(response);
+
       if (response['statusCode'] == 201) {
         // success
+        var postData = response['body']['post'];
+
+        // Create a new Post object from the response
+        Post newPost = Post(
+          id: postData['_id'].toString(),
+          userId: postData['author'],
+          username: retrievedUserData?['user']['username'],
+          userThumbnailUrl: postData['profileImage'] ??
+              'https://cdn-icons-png.flaticon.com/512/9131/9131529.png',
+          text: postData['content'],
+          imageUrl: postData['media'].isNotEmpty ? postData['media'][0] : null,
+          timestamp: DateTime.parse(postData['createdAt']),
+          likes: List<String>.from(postData['likes'] ?? []),
+          comments: List<Map<String, dynamic>>.from(postData['comments'] ?? []),
+        );
+
+        // Add the newly created post to the posts list
+        setState(() {
+          posts.insert(0, newPost); // Insert at the top of the list
+        });
+
         setState(() {
           _isLoading = false; // Set loading to false
           // Reset the input fields
@@ -182,27 +223,44 @@ class _FeedScreenState extends State<FeedScreen> {
         _isLoading = false; // Set loading to false
       });
       // Close the Bottom Sheet
+      // ignore: use_build_context_synchronously
       Navigator.of(context).pop();
     }
+  }
 
-    /*
-    // Add post to the list of posts
-    final newPost = Post(
-      id: DateTime.now().toString(),
-      userId: 'u3', // Assuming a new user
-      username: 'New User', // Username for the new user
-      userThumbnailUrl:
-          'https://cdn-icons-png.flaticon.com/512/9131/9131529.png',
-      text: _contentController.text,
-      imageUrl:
-          _imageUrlController.text.isNotEmpty ? _imageUrlController.text : null,
-      timestamp: DateTime.now(),
-    );
-
-    setState(() {
-      posts.add(newPost);
-    });
-    */
+  Future<void> _deletePost(String postId) async {
+    try {
+      final response = await httpService.delete('/$postId');
+      print(response);
+      if (response['statusCode'] == 200) {
+        setState(() {
+          posts.removeWhere((post) => post.id == postId);
+        });
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['body']['message']),
+            backgroundColor: Colors.green[400],
+          ),
+        );
+      } else {
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Failed to delete post'),
+            backgroundColor: Colors.red[400],
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error: $e'); // Handle errors here
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error deleting post'),
+          backgroundColor: Colors.red[400],
+        ),
+      );
+    }
   }
 
   // Function to show the Bottom Sheet and add a post
@@ -296,9 +354,16 @@ class _FeedScreenState extends State<FeedScreen> {
     );
   }
 
+  Future<void> _fetchUserData() async {
+    // Fetch user data from secure storage
+    retrievedUserData = await storageService.retrieveData('user_data');
+    setState(() {}); // Refresh the UI with the fetched user data
+  }
+
   @override
   void initState() {
     super.initState();
+    _fetchUserData();
     getPosts();
   }
 
@@ -332,11 +397,35 @@ class _FeedScreenState extends State<FeedScreen> {
           ListView.builder(
             itemCount: posts.length,
             itemBuilder: (context, index) {
-              return PostWidget(
-                post: posts[index],
-                onLike: _likePost,
-                onComment: (comment) => _addComment(posts[index].id, comment),
-              );
+              final post = posts[index];
+
+              // Check if the current user is the author of the post
+              bool isPostOwner =
+                  post.userId == retrievedUserData?['user']['_id'];
+              return isPostOwner // Wrap in Dismissible only if user is the author of the post
+                  ? Dismissible(
+                      key: Key(post.id),
+                      direction: DismissDirection.endToStart,
+                      onDismissed: (direction) {
+                        _deletePost(post.id);
+                      },
+                      background: Container(
+                        color: Colors.red[400],
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20.0),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      child: PostWidget(
+                        post: post,
+                        onLike: _likePost,
+                        onComment: (comment) => _addComment(post.id, comment),
+                      ),
+                    )
+                  : PostWidget(
+                      post: post,
+                      onLike: _likePost,
+                      onComment: (comment) => _addComment(post.id, comment),
+                    );
             },
           ),
 

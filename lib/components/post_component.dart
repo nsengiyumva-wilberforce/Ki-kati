@@ -187,8 +187,7 @@ class Post {
   // Add a like from a user (by user ID)
   void addLike(String userId) {
     if (!likes.contains(userId)) {
-      likes.add(
-          userId); // Add the user ID to the likes list if not already present
+      likes.add(userId); // Add the user ID to the likes list if not already present
     }
   }
 
