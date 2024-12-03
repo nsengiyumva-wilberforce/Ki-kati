@@ -1,0 +1,98 @@
+import 'package:flutter/material.dart';
+import 'package:ki_kati/components/http_servive.dart';
+
+class SetNewPassword extends StatefulWidget {
+  const SetNewPassword({super.key});
+
+  @override
+  State<SetNewPassword> createState() => _SetNewPasswordState();
+}
+
+class _SetNewPasswordState extends State<SetNewPassword> {
+  final HttpService httpService = HttpService('https://ki-kati.com/api');
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _codeController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  void _submit() {
+    if (_formKey.currentState!.validate()) {
+      // Handle submission logic here
+      final code = _codeController.text;
+      final newPassword = _passwordController.text;
+
+      // Example: API call or other action
+      print('Verification Code: $code');
+      print('New Password: $newPassword');
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password reset successfully!')),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Set New Password'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                controller: _codeController,
+                decoration: const InputDecoration(
+                  labelText: 'Verification Code',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter the verification code';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16.0),
+              TextFormField(
+                controller: _passwordController,
+                decoration: const InputDecoration(
+                  labelText: 'New Password',
+                  border: OutlineInputBorder(),
+                ),
+                obscureText: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a new password';
+                  }
+                  if (value.length < 6) {
+                    return 'Password must be at least 6 characters long';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24.0),
+              ElevatedButton(
+                onPressed: _submit,
+                child: const Text('Set Password'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

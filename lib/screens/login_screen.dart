@@ -79,8 +79,8 @@ class _LoginState extends State<Login> {
     //await Future.delayed(const Duration(seconds: 2));
     try {
       final response = await httpService.post('/auth/login', {
-        'username': usernameController.text,
-        'password': passwordController.text
+        'username': usernameController.text.trim(),
+        'password': passwordController.text.trim()
       });
 
       if (response['statusCode'] == 200) {
@@ -100,7 +100,7 @@ class _LoginState extends State<Login> {
         await storageService.storeData('user_data', response['body']);
 
         print("token saved to secure storage!");
-        Navigator.push(
+        Navigator.pushReplacement(
           // ignore: use_build_context_synchronously
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),

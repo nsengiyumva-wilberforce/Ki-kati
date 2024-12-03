@@ -117,14 +117,14 @@ class _RegisterState extends State<Register> {
 
     try {
       final response = await httpService.post('/auth/register', {
-        'username': usernameController.text,
-        'firstName': firstNameController.text,
-        'lastName': lastNameController.text,
-        'email': emailController.text,
+        'username': usernameController.text.trim(),
+        'firstName': firstNameController.text.trim(),
+        'lastName': lastNameController.text.trim(),
+        'email': emailController.text.trim(),
         'gender': selectedGender,
-        'password': passwordController.text,
+        'password': passwordController.text.trim(),
         'dateOfBirth': dateOfBirthController.text,
-        'phoneNumber': phoneNumberController.text,
+        'phoneNumber': phoneNumberController.text.trim(),
       });
       print(response);
       if (response['statusCode'] == 201) {
