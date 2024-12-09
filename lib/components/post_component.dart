@@ -1,5 +1,4 @@
-import 'dart:ui';
-
+//import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:ki_kati/screens/post_details_screen.dart';
 
@@ -50,12 +49,29 @@ class _PostWidgetState extends State<PostWidget> {
             const SizedBox(height: 8),
             // Post Text
             Text(widget.post.text),
-            // Post Image (if available)
-            if (widget.post.imageUrl != null)
+            /*
+            // Iterate through all media (images)
+            if (widget.post.imageUrls.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Image.network(widget.post.imageUrl!),
+                child: Column(
+                  children: widget.post.imageUrls.map((imageUrl) {
+                    return Image.network(imageUrl);
+                  }).toList(),
+                ),
               ),
+              */
+
+            // Display media (image/video)
+            if (widget.post.media.isNotEmpty)
+              ...widget.post.media.map((mediaItem) {
+                if (mediaItem['type'] == 'image') {
+                  return Image.network(
+                      "https://ki-kati.com${mediaItem['url']}");
+                }
+                // Add handling for other types like video, if necessary
+                return Container(); // Return empty container if media type is not recognized
+              }).toList(),
             // Likes and Comments
             Row(
               children: [
@@ -191,7 +207,7 @@ class Post {
   final String username;
   final String userThumbnailUrl;
   final String text;
-  final String? imageUrl;
+  final List<Map<String, dynamic>> media;
   final DateTime timestamp;
   //int likes;
   List<String> likes; // List of user IDs who liked the post
@@ -203,13 +219,22 @@ class Post {
     required this.username,
     required this.userThumbnailUrl,
     required this.text,
-    this.imageUrl,
+    required this.media,
     required this.timestamp,
     //this.likes = 0,
     List<String>? likes, // List of user IDs for likes
     List<Map<String, dynamic>>? comments, // List of maps for comments
   })  : comments = comments ?? [],
         likes = likes ?? []; // Default to an empty list if none is provided
+
+  // Get image URL from the media list
+  List<String> get imageUrls {
+    // Extract URLs from the media list, assuming each media object has a 'url' field
+    return media
+        .where((mediaItem) => mediaItem['url'] != null)
+        .map((mediaItem) => mediaItem['url'].toString())
+        .toList();
+  }
 
   void addComment(Map<String, dynamic> comment) {
     comments.add(comment);

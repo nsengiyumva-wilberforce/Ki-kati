@@ -242,11 +242,23 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
             // Post Text
             Text(post.text),
             // Post Image (if available)
+            /*
             if (post.imageUrl != null)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Image.network(post.imageUrl!),
               ),
+              */
+            // Display media (image/video)
+            if (post.media.isNotEmpty)
+              ...post.media.map((mediaItem) {
+                if (mediaItem['type'] == 'image') {
+                  return Image.network(
+                      "https://ki-kati.com${mediaItem['url']}");
+                }
+                // Add handling for other types like video, if necessary
+                return Container(); // Return empty container if media type is not recognized
+              }).toList(),
             const SizedBox(height: 16),
             // Likes and Comments
             Row(

@@ -42,6 +42,9 @@ class HttpService {
   Future<dynamic> post(String endpoint, Map<String, dynamic> data) async {
     final url = Uri.parse('$baseUrl$endpoint');
 
+    print("Hello Dave, this is the message!");
+    print(data);
+
     Map<String, dynamic>? retrievedUserData =
         await storageService.retrieveData('user_data');
     final token = retrievedUserData?['token'];

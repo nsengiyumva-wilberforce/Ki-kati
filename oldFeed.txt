@@ -45,7 +45,6 @@ class _FeedScreenState extends State<FeedScreen> {
       // Assuming response is a list of posts from the API
       final List<dynamic> data = List.from(response);
 
-      /*
       // Create a list of Post objects by manually mapping the API response
       List<Post> loadedPosts = data.map((postData) {
         return Post(
@@ -59,28 +58,8 @@ class _FeedScreenState extends State<FeedScreen> {
           timestamp: DateTime.parse(postData['createdAt']),
           likes: List<String>.from(postData['likes'] ?? []),
           //comments: List<String>.from(postData['comments'] ?? []),
-          comments: List<Map<String, dynamic>>.from(postData['comments'] ?? []),
-        );
-      }).toList();
-      */
-
-      final List<Post> loadedPosts = data.map((postData) {
-        return Post(
-          id: postData['_id'].toString(),
-          userId: postData['author']?['_id'] ?? '', // Safe navigation
-          username: postData['author']?['username'] ?? 'Unknown User',
-          userThumbnailUrl: postData['author']?['profileImage'] ??
-              'https://cdn-icons-png.flaticon.com/512/9131/9131529.png', // Default image if null
-          text: postData['content'] ??
-              'No content available', // Default text if null
-          media: postData['media'] != null
-              ? List<Map<String, dynamic>>.from(postData['media'])
-              : [],
-          timestamp: postData['createdAt'] != null
-              ? DateTime.parse(postData['createdAt'])
-              : DateTime.now(),
-          likes: List<String>.from(postData['likes'] ?? []),
-          comments: List<Map<String, dynamic>>.from(postData['comments'] ?? []),
+          comments: List<Map<String, dynamic>>.from(
+              postData['comments'] ?? []), // Fix comment structure
         );
       }).toList();
 
@@ -89,7 +68,6 @@ class _FeedScreenState extends State<FeedScreen> {
         posts = loadedPosts;
       });
     } catch (e) {
-      print(e);
       setState(() {
         posts = [];
       });
@@ -258,10 +236,7 @@ class _FeedScreenState extends State<FeedScreen> {
           userThumbnailUrl: postData['profileImage'] ??
               'https://cdn-icons-png.flaticon.com/512/9131/9131529.png',
           text: postData['content'],
-          //imageUrl: postData['media'].isNotEmpty ? postData['media'][0] : null,
-          media: postData['media'] != null
-              ? List<Map<String, dynamic>>.from(postData['media'])
-              : [],
+          imageUrl: postData['media'].isNotEmpty ? postData['media'][0] : null,
           timestamp: DateTime.parse(postData['createdAt']),
           likes: List<String>.from(postData['likes'] ?? []),
           comments: List<Map<String, dynamic>>.from(postData['comments'] ?? []),
@@ -476,46 +451,47 @@ class _FeedScreenState extends State<FeedScreen> {
       ),
       body: Stack(
         children: [
-          RefreshIndicator(
-            onRefresh: getPosts, // Trigger refresh
-            child: ListView.builder(
-              itemCount: posts.length,
-              itemBuilder: (context, index) {
-                final post = posts[index];
+          ListView.builder(
+            itemCount: posts.length,
+            itemBuilder: (context, index) {
+              final post = posts[index];
 
-                bool isPostOwner =
-                    post.userId == retrievedUserData?['user']['_id'];
-                return isPostOwner
-                    ? Dismissible(
-                        key: Key(post.id),
-                        direction: DismissDirection.endToStart,
-                        onDismissed: (direction) {
-                          _deletePost(post.id);
-                        },
-                        background: Container(
-                          color: Colors.red[400],
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 20.0),
-                          child: const Icon(Icons.delete, color: Colors.white),
-                        ),
-                        child: PostWidget(
-                          post: post,
-                          onLike: _likePost,
-                          onComment: (comment) => _addComment(post.id, comment),
-                        ),
-                      )
-                    : PostWidget(
+              // Check if the current user is the author of the post
+              bool isPostOwner =
+                  post.userId == retrievedUserData?['user']['_id'];
+              return isPostOwner // Wrap in Dismissible only if user is the author of the post
+                  ? Dismissible(
+                      key: Key(post.id),
+                      direction: DismissDirection.endToStart,
+                      onDismissed: (direction) {
+                        _deletePost(post.id);
+                      },
+                      background: Container(
+                        color: Colors.red[400],
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20.0),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      child: PostWidget(
                         post: post,
                         onLike: _likePost,
                         onComment: (comment) => _addComment(post.id, comment),
-                      );
-              },
-            ),
+                      ),
+                    )
+                  : PostWidget(
+                      post: post,
+                      onLike: _likePost,
+                      onComment: (comment) => _addComment(post.id, comment),
+                    );
+            },
           ),
+
+          // If _isLoading is true, show the loading overlay
           if (_isLoading)
             Positioned.fill(
               child: Container(
-                color: Colors.black.withOpacity(0.3),
+                color:
+                    Colors.black.withOpacity(0.3), // Semi-transparent overlay
                 child: const Center(
                   child: CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),

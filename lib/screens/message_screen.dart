@@ -83,7 +83,8 @@ class _MessageScreenState extends State<MessageScreen> {
       ScrollController(); // Scroll controller to manage scrolling
   // Variable to hold selected file details object
   //FileInfo? selectedFile;
-  File? selectedFile;
+  //File? selectedFile;
+  List<File> filesSelected = [];
   bool isLoading = false;
 
   final HttpService httpService = HttpService("https://ki-kati.com/api");
@@ -265,23 +266,153 @@ class _MessageScreenState extends State<MessageScreen> {
     super.dispose();
   }
 
-  Future<void> pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+  Future<void> handleFilePreview(BuildContext context, File file) async {
+    String fileExtension = file.path.split('.').last.toLowerCase();
 
-    if (result != null) {
+    if (fileExtension == 'jpg' ||
+        fileExtension == 'png' ||
+        fileExtension == 'jpeg') {
+      // Preview image with size constraints
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return Scaffold(
+          appBar: AppBar(title: const Text('Image Preview')),
+          body: Center(
+            child: Image.file(
+              file,
+              width: MediaQuery.of(context).size.width *
+                  0.8, // 80% of screen width
+              height: MediaQuery.of(context).size.height *
+                  0.6, // 60% of screen height
+              fit: BoxFit
+                  .contain, // Makes sure the image is contained within the box
+            ),
+          ),
+        );
+      }));
+    } else if (fileExtension == 'txt') {
+      // Preview text file
+      String content = await file.readAsString();
+      showDialog(
+        // ignore: use_build_context_synchronously
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Text File Preview'),
+            content: SingleChildScrollView(
+              child: Text(content),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Close'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      // Handle other file types, maybe show an alert
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Unsupported File'),
+            content:
+                const Text('Preview for this file type is not supported yet.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Close'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  Future<void> pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+    );
+
+    if (result != null && result.files.isNotEmpty) {
+      // List to store selected files
+      List<File> selectedFiles = [];
+
+      for (var file in result.files) {
+        // Create a File object for each picked file
+        selectedFiles.add(File(file.path!));
+      }
+
+      setState(() {
+        filesSelected = selectedFiles;
+      });
+
+      /*
       File file = File(result.files.single.path!);
       String fileName = result.files.single.name;
+      */
       //String fileExtension = result.files.single.extension ?? "unknown";
       //int fileSize = result.files.single.size;
 
-      setState(() {
-        selectedFile = file;
-      });
+      // Showing a snack bar with file names
+      String fileNames = result.files.map((e) => e.name).join(', ');
 
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Picked file: $fileName"),
+        content: Text("Picked files: $fileNames"),
       ));
+
+      showModalBottomSheet(
+          // ignore: use_build_context_synchronously
+          context: context,
+          builder: (context) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ListView.builder(
+                itemCount: selectedFiles.length,
+                itemBuilder: (context, index) {
+                  File file = selectedFiles[index];
+                  String fileName = file.path.split('/').last;
+                  String fileExtension =
+                      file.path.split('.').last.toLowerCase();
+
+                  return ListTile(
+                    title: Text(fileName),
+                    subtitle: Text("Type: $fileExtension"),
+                    leading: const Icon(Icons.insert_drive_file),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.remove_circle, color: Colors.red),
+                      onPressed: () {
+                        // Remove the file from the list
+                        setState(() {
+                          selectedFiles.removeAt(index);
+                        });
+
+                        // If needed, update the global filesSelected list
+                        setState(() {
+                          filesSelected = selectedFiles;
+                        });
+
+                        // Show a snack bar confirming the removal
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text("Removed: $fileName"),
+                        ));
+                      },
+                    ),
+                    onTap: () {
+                      handleFilePreview(context, file);
+                    },
+                  );
+                },
+              ),
+            );
+          });
     } else {
       // User canceled the picker
       // ignore: use_build_context_synchronously
@@ -293,12 +424,13 @@ class _MessageScreenState extends State<MessageScreen> {
 
   // Function to send message
   void sendMessage() {
-    if (messageController.text.isNotEmpty || selectedFile != null) {
+    // ignore: unnecessary_null_comparison
+    if (messageController.text.isNotEmpty || filesSelected.isNotEmpty) {
       final message = MessageModel(
         uid: Random().nextInt(100000).toString(),
         recvId: widget.targetUserId,
         message: messageController.text,
-        files: selectedFile?.path,
+        files: filesSelected.map((e) => e.path).join(', '),
         senderUsername:
             widget.currentUserName, // This should be the actual username
         senderProfileImage: "", // You can pass the actual profile image URL
