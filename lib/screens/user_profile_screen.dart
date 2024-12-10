@@ -1,32 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:ki_kati/components/secureStorageServices.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _UserProfileScreenState createState() => _UserProfileScreenState();
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
-  // Mock user data (replace with actual API or state management)
-  final Map<String, dynamic> user = {
-    "_id": "6733e770ef99b681bdfc4979",
-    "username": "engdave",
-    "firstName": "kinyonyi",
-    "lastName": "david hope",
-    "email": "kinyonyidavid@gmail.com",
-    "gender": "Male",
-    "dateOfBirth": DateTime.parse("2024-11-13T00:00:00.000Z"),
-    "phoneNumber": "0787270058",
-    "isEmailConfirmed": true,
-    "groups": [
-      "6733f51aef99b681bdfc49dd",
-      "6733f676ef99b681bdfc49e9",
-      "6733f6eeef99b681bdfc49ef",
-      "6733f9e3ef99b681bdfc49fa"
-    ],
-  };
+  SecureStorageService storageService = SecureStorageService();
+  Map<String, dynamic> user = {}; // Initialize user data
 
   // Controllers for the form fields
   late TextEditingController _usernameController;
@@ -37,21 +21,41 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   late TextEditingController _dateOfBirthController;
   String? _gender;
 
-  // To manage whether the user is editing or viewing the profile
   bool isEditing = false;
 
   @override
   void initState() {
     super.initState();
+    getUserData();
+  }
+
+  Future<void> getUserData() async {
+    // Retrieve user data from secure storage
+    Map<String, dynamic>? retrievedUserData =
+        await storageService.retrieveData('user_data');
+
+    if (retrievedUserData != null) {
+      setState(() {
+        user = retrievedUserData["user"];
+      });
+      _initializeControllers(); // Initialize the controllers after the data is fetched
+    }
+  }
+
+  void _initializeControllers() {
     // Initialize controllers with current user data
     _usernameController = TextEditingController(text: user["username"]);
     _firstNameController = TextEditingController(text: user["firstName"]);
     _lastNameController = TextEditingController(text: user["lastName"]);
     _emailController = TextEditingController(text: user["email"]);
     _phoneNumberController = TextEditingController(text: user["phoneNumber"]);
+
+    // Ensure dateOfBirth is correctly parsed into DateTime
+    DateTime parsedDateOfBirth = DateTime.parse(user['dateOfBirth']);
     _dateOfBirthController = TextEditingController(
         text:
-            "${user['dateOfBirth'].day}/${user['dateOfBirth'].month}/${user['dateOfBirth'].year}");
+            "${parsedDateOfBirth.day}/${parsedDateOfBirth.month}/${parsedDateOfBirth.year}");
+
     _gender = user["gender"];
   }
 
@@ -66,7 +70,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     super.dispose();
   }
 
-  // Save function to handle saving of updated data (usually make an API call)
   void _saveProfile() {
     final updatedUserData = {
       "username": _usernameController.text,
@@ -74,7 +77,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       "lastName": _lastNameController.text,
       "email": _emailController.text,
       "phoneNumber": _phoneNumberController.text,
-      "dateOfBirth": _dateOfBirthController.text,
+      "dateOfBirth":
+          _dateOfBirthController.text, // Here we save the formatted date
       "gender": _gender,
     };
 
@@ -85,16 +89,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       const SnackBar(content: Text('Profile updated successfully!')),
     );
 
-    // Toggle the editing mode back to view
     setState(() {
       isEditing = false;
     });
   }
 
-  // Function to show the date picker
   Future<void> _selectDate(BuildContext context) async {
     final DateTime currentDate = DateTime.now();
-    final DateTime initialDate = user["dateOfBirth"];
+    final DateTime initialDate = DateTime.parse(user["dateOfBirth"]);
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
@@ -112,6 +114,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Check if user data is fetched before building the widget
+    if (user.isEmpty) {
+      return const Center(
+          child: CircularProgressIndicator()); // Loading indicator
+    }
+
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -126,63 +134,50 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            // Profile Header with Avatar and User Info
-            Center(
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 60.0,
-                    backgroundImage: NetworkImage(user["profilePicture"] ??
-                        'https://via.placeholder.com/150'),
-                    child: user["profilePicture"] == null
-                        ? const Icon(
-                            Icons.person,
-                            size: 60.0,
-                            color: Colors.white,
-                          )
-                        : null, // Default icon if no picture is available
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    "${user['firstName']} ${user['lastName']}",
-                    style: const TextStyle(
-                        fontSize: 22.0, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    "@${user['username']}",
-                    style: const TextStyle(fontSize: 16.0, color: Colors.grey),
-                  ),
-                ],
+            if (user.isNotEmpty)
+              Center(
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 60.0,
+                      backgroundImage: NetworkImage(user["profilePicture"] ??
+                          'https://via.placeholder.com/150'),
+                      child: user["profilePicture"] == null
+                          ? const Icon(
+                              Icons.person,
+                              size: 60.0,
+                              color: Colors.white,
+                            )
+                          : null, // Default icon if no picture is available
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      "${user['firstName']} ${user['lastName']}",
+                      style: const TextStyle(
+                          fontSize: 22.0, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      "@${user['username']}",
+                      style:
+                          const TextStyle(fontSize: 16.0, color: Colors.grey),
+                    ),
+                  ],
+                ),
               ),
-            ),
             const SizedBox(height: 20),
-
-            // Username Field
             _buildProfileField("Username", _usernameController, isEditing),
             const SizedBox(height: 16),
-
-            // First Name Field
             _buildProfileField("First Name", _firstNameController, isEditing),
             const SizedBox(height: 16),
-
-            // Last Name Field
             _buildProfileField("Last Name", _lastNameController, isEditing),
             const SizedBox(height: 16),
-
-            // Email Field
             _buildProfileField("Email", _emailController, isEditing),
             const SizedBox(height: 16),
-
-            // Phone Number Field
             _buildProfileField(
                 "Phone Number", _phoneNumberController, isEditing),
             const SizedBox(height: 16),
-
-            // Date of Birth Field with Calendar
             _buildDateOfBirthField(isEditing),
             const SizedBox(height: 16),
-
-            // Gender Field
             const Text(
               'Gender',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -224,10 +219,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               )
             else
               Text(_gender ?? "Not specified"),
-
             const SizedBox(height: 20),
-
-            // Toggle Edit Button or Save Button
             isEditing
                 ? ElevatedButton(
                     onPressed: _saveProfile,
@@ -265,7 +257,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  // Helper function to build either a text or text field based on editing mode
   Widget _buildProfileField(
       String label, TextEditingController controller, bool isEditing) {
     if (isEditing) {
@@ -303,7 +294,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
   }
 
-  // Date of Birth Field with Calendar Button
   Widget _buildDateOfBirthField(bool isEditing) {
     if (isEditing) {
       return GestureDetector(

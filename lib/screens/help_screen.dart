@@ -24,7 +24,7 @@ class HelpScreen extends StatelessWidget {
             const Text(
               'Welcome to the Ki-Kati Help & Support section!',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: Colors.teal,
               ),

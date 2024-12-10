@@ -82,8 +82,6 @@ class _MessageScreenState extends State<MessageScreen> {
   final ScrollController _scrollController =
       ScrollController(); // Scroll controller to manage scrolling
   // Variable to hold selected file details object
-  //FileInfo? selectedFile;
-  //File? selectedFile;
   List<File> filesSelected = [];
   bool isLoading = false;
 
@@ -188,26 +186,30 @@ class _MessageScreenState extends State<MessageScreen> {
 
     // Listen for new direct messages
     _socketService.socket.on("directMessage", (data) {
-      setState(() {
-        messages.add(MessageModel(
-          uid: Random().nextInt(100000).toString(),
-          recvId: widget.currentUserName,
-          message: data['content'],
-          senderUsername: data['sender'],
-          senderProfileImage: "",
-          type: MessageType.text,
-          timeSent: DateTime.now(),
-        ));
-      });
-      _scrollToLastMessage();
+      if (mounted) {
+        setState(() {
+          messages.add(MessageModel(
+            uid: Random().nextInt(100000).toString(),
+            recvId: widget.currentUserName,
+            message: data['content'],
+            senderUsername: data['sender'],
+            senderProfileImage: "",
+            type: MessageType.text,
+            timeSent: DateTime.now(),
+          ));
+        });
+        _scrollToLastMessage();
+      }
     });
 
     _socketService.socket.on('typing', (data) {
       print('${data['username']} is typing...');
 
-      setState(() {
-        isTyping = true;
-      });
+      if (mounted) {
+        setState(() {
+          isTyping = true;
+        });
+      }
 
       // Cancel the previous timer if the user continues typing
       if (_typingTimer != null) {
@@ -262,6 +264,11 @@ class _MessageScreenState extends State<MessageScreen> {
     if (_typingTimer != null) {
       _typingTimer!.cancel();
     }
+
+    // Remove socket listeners
+    _socketService.socket.off("directMessage");
+    _socketService.socket.off('typing');
+    _socketService.socket.off('stop_typing');
 
     super.dispose();
   }

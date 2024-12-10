@@ -68,6 +68,9 @@ class _SearchScreenState extends State<SearchScreen> {
         if (mounted) {
           Navigator.pop(context);
         }
+        // Unfocus the TextField after search completion
+        // ignore: use_build_context_synchronously
+        FocusScope.of(context).unfocus();
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

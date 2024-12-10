@@ -79,7 +79,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.white,
       /*
       appBar: AppBar(
         title: const Text("Settings"),
@@ -199,7 +199,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const Divider(height: 40),
             Text(
-              "Account",
+              "End Session",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -218,11 +218,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ) // Show spinning indicator if loading
                   : null,
             ),
+            /*
             ListTile(
               leading: const Icon(Icons.email, color: Colors.black),
               title: const Text("Change email"),
               onTap: () {},
             ),
+            */
           ],
         ),
       ),

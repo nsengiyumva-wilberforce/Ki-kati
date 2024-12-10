@@ -11,7 +11,6 @@ class SocketService with ChangeNotifier {
   SecureStorageService storageService = SecureStorageService();
 
   // List to store active users
-  //List<String> activeUsers = [];
   List<Map<String, dynamic>> activeUsers = [];
   List<Map<String, dynamic>> receivedMessages = [];
 
@@ -26,16 +25,11 @@ class SocketService with ChangeNotifier {
   }
 
   final HttpService httpService = HttpService("https://ki-kati.com/api");
-  //late Future<List<dynamic>> activeUsers;
 
   // Fetch active users from the API
   Future<void> fetchActiveUsers() async {
     try {
-      // Call the GET method of HttpService
       final response = await httpService.get("/messages/active-users");
-      print(response);
-
-      // If response is valid, update the activeUsers list
       if (response != null) {
         activeUsers = List<Map<String, dynamic>>.from(response);
         notifyListeners(); // Notify listeners (e.g., UI) about the change
@@ -48,29 +42,40 @@ class SocketService with ChangeNotifier {
   }
 
   Future<void> connect() async {
-    print("attempting to connect to socket");
+    print("Attempting to connect to socket");
+
+    // Retrieve user data from storage
     Map<String, dynamic>? retrievedUserData =
         await storageService.retrieveData('user_data');
     String? username = retrievedUserData?['user']['username'];
+    String? token = retrievedUserData?['token'];
+
+    if (username == null || token == null) {
+      print("User data is missing, unable to connect");
+      return;
+    }
 
     socket = IO.io('https://ki-kati.com', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
       'auth': {
-        'token': retrievedUserData?['token'],
+        'token': token,
       },
+      'reconnectionAttempts': 5, // Limit reconnection attempts
+      'reconnectionDelay': 1000, // Delay before retrying (1 second)
+      'reconnectionDelayMax': 5000, // Maximum delay before retrying (5 seconds)
+      'randomizationFactor': 0.5, // Factor to randomize reconnection delay
     });
 
     socket.connect();
 
     socket.onConnect((_) {
       print('Connected to the server as $username');
-      socket.emit('registerUser', username); // replace with actual username
+      socket.emit('registerUser', username); // Register user after connection
     });
 
     socket.onDisconnect((_) {
       print("You have been disconnected from the server!");
-      print('Disconnected from server');
     });
 
     // Handle connection errors
@@ -88,88 +93,92 @@ class SocketService with ChangeNotifier {
       print('Reconnection attempt #$attempt');
     });
 
-    /* Listen for active users
-    socket.on('activeUsers', (data) {
-      // Convert the incoming data to a List<String> if necessary
-      //activeUsers = List<String>.from(data);
-      activeUsers = List<Map<String, dynamic>>.from(data);
-      // Notify listeners (e.g., UI) about the change
-      notifyListeners();
-      // Handle active users data here
-      print('Active Users: $data');
-    });
-    */
-
     // Listen for active users (server should emit the active users data)
     socket.on('activeUsers', (data) async {
-      // When the 'activeUsers' event is received, fetch the active users from the API
       if (data != null) {
         print('Active Users event received: $data');
-        // Call the fetchActiveUsers function to refresh the list
+        // Fetch active users when the event is received
         await fetchActiveUsers();
       }
     });
 
     // Listen for incoming messages (directMessage)
     socket.on("directMessage", (data) {
-      // When a message is received, add it to the list of received messages
-      receivedMessages.add({
-        'sender': data['sender'],
-        'content': data['content'],
-      });
-      print("This is the recieved message from the socket class!");
-      print(receivedMessages);
-
-      // Notify listeners to update the UI
-      notifyListeners();
+      if (data != null) {
+        receivedMessages.add({
+          'sender': data['sender'],
+          'content': data['content'],
+        });
+        print("Received message: ${data['content']}");
+        notifyListeners(); // Notify listeners to update the UI
+      }
     });
 
     socket.on('typing', (data) {
-      // Handle incoming messages
-      print('${data['username']} is typing');
-
-      String typingUser = data['username'];
-      typingStatus[typingUser] = true; // User is typing
-      notifyListeners(); // Notify UI
+      if (data != null) {
+        String typingUser = data['username'];
+        typingStatus[typingUser] = true; // User is typing
+        print('$typingUser is typing');
+        notifyListeners(); // Notify UI
+      }
     });
 
     socket.on('stop_typing', (data) {
-      print('${data['username']} stopped typing');
-      String typingUser = data['username'];
-      typingStatus[typingUser] = false; // User stopped typing
-      notifyListeners(); // Notify UI
+      if (data != null) {
+        String typingUser = data['username'];
+        typingStatus[typingUser] = false; // User stopped typing
+        print('$typingUser stopped typing');
+        notifyListeners(); // Notify UI
+      }
     });
   }
 
-  // Send a message via socketrecipientId: recipientId,
   void sendMessage(String recipient, String message, String from) {
-    socket.emit('sendMessage',
-        {'recipientId': recipient, 'content': message, 'from': from});
+    if (socket.connected) {
+      socket.emit('sendMessage', {
+        'recipientId': recipient,
+        'content': message,
+        'from': from,
+      });
+      print("Message sent to $recipient: $message");
+    } else {
+      print("Socket is not connected. Unable to send message.");
+    }
   }
 
-  // emit typing for users connected,
   void sendTyping(String from, String recipientId) {
-    socket.emit('typing', {'username': from, 'recipientId': recipientId});
+    if (socket.connected) {
+      socket.emit('typing', {'username': from, 'recipientId': recipientId});
+      print('$from started typing...');
+    } else {
+      print("Socket is not connected. Unable to emit typing status.");
+    }
   }
 
-  // Emit stop typing event (after the user stops typing for a certain time)
   void sendStopTyping(String from, String recipientId) {
-    //typingStatus[from] = false; // User stopped typing
-    socket.emit('stop_typing', {'username': from, 'recipientId': recipientId});
-    //notifyListeners(); // Notify UI
+    if (socket.connected) {
+      socket
+          .emit('stop_typing', {'username': from, 'recipientId': recipientId});
+      print('$from stopped typing');
+    } else {
+      print("Socket is not connected. Unable to emit stop typing status.");
+    }
   }
 
-  // Optional: Disconnect from the socket when done
   void disconnect() {
     socket.disconnect();
+    print('Socket disconnected');
+    // Optionally clear data on disconnect
+    activeUsers.clear();
+    receivedMessages.clear();
+    typingStatus.clear();
+    notifyListeners();
   }
 
-  // Optional: Get the current socket instance
   IO.Socket getSocket() {
     return socket;
   }
 
-  // Method to get active users list (if needed)
   List<Map<String, dynamic>> getActiveUsers() {
     return activeUsers;
   }
@@ -178,6 +187,7 @@ class SocketService with ChangeNotifier {
     return typingStatus;
   }
 }
+
 
 /*
    // Send a message via socketrecipientId: recipientId,

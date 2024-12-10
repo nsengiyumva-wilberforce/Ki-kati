@@ -193,40 +193,35 @@ class _KikatiGroupState extends State<KikatiGroup> {
                 // Buttons aligned to the right
                 Row(
                   children: [
-                    ElevatedButton(
+                    IconButton(
                       onPressed: () {
                         setState(() {
                           isMyGroups = true;
                         });
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue, // Background color
-                        foregroundColor:
-                            Colors.white, // Text color (foreground)
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              8.0), // Set border radius here
-                        ),
+                      icon: const Icon(
+                        Icons.group, // You can change this to any relevant icon
+                        color: Colors.blue, // Icon color
+                        size: 30.0, // Icon size
                       ),
-                      child: const Text("My Groups"),
+                      tooltip:
+                          'My Groups', // Optional tooltip for accessibility
                     ),
                     const SizedBox(width: 10), // Space between the buttons
-                    ElevatedButton(
+                    IconButton(
                       onPressed: () {
                         setState(() {
-                          isMyGroups = false;
+                          isMyGroups = false; // Update the state when pressed
                         });
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green, // Background color
-                        foregroundColor:
-                            Colors.white, // Text color (foreground)
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              8.0), // Set border radius here
-                        ),
+                      icon: const Icon(
+                        Icons
+                            .group_add, // You can use any relevant icon here (e.g., group add)
+                        color: Colors.green, // Icon color
+                        size: 30.0, // Icon size
                       ),
-                      child: const Text("Other Groups"),
+                      tooltip:
+                          'Other Groups', // Optional tooltip for accessibility
                     ),
                   ],
                 ),
@@ -242,10 +237,10 @@ class _KikatiGroupState extends State<KikatiGroup> {
             ),
             const SizedBox(height: 20),
             const Text(
-              "Make Group For Team Work",
+              "Make Group For Team \nWork",
               style: TextStyle(
-                  fontSize: 34.0,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 26.0,
+                  fontWeight: FontWeight.w600,
                   color: Color.fromARGB(221, 19, 19, 19)),
             ),
             const SizedBox(height: 20),
@@ -345,7 +340,7 @@ class _KikatiGroupState extends State<KikatiGroup> {
                             CircleAvatar(
                               radius: 30.0,
                               backgroundImage:
-                                  const AssetImage('images.user.png'),
+                                  const AssetImage('images/user.png'),
                               backgroundColor: selectedFriends.contains(userId)
                                   ? const Color.fromARGB(255, 131, 193, 244)
                                   : Colors.grey,

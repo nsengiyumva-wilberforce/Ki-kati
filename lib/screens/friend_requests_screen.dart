@@ -140,24 +140,21 @@ class _FriendRequestScreenState extends State<FriendRequestScreen> {
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                ElevatedButton(
+                                IconButton(
                                   onPressed: () => handleFriendRequest(
                                       requestUsername, true),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  child: const Text('Confirm'),
+                                  icon: const Icon(Icons.check,
+                                      color:
+                                          Colors.green), // Green checkmark icon
+                                  tooltip: 'Confirm',
                                 ),
-                                const SizedBox(width: 10),
-                                ElevatedButton(
+                                const SizedBox(width: 2),
+                                IconButton(
                                   onPressed: () => handleFriendRequest(
                                       requestUsername, false),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  child: const Text('Deny'),
+                                  icon: const Icon(Icons.close,
+                                      color: Colors.red), // Red cross icon
+                                  tooltip: 'Deny',
                                 ),
                               ],
                             ),
