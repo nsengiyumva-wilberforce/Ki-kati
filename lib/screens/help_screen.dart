@@ -7,9 +7,13 @@ class HelpScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Help & Support'),
+        foregroundColor: Colors.white,
+        title: const Text(
+          'Help & Support',
+          style: TextStyle(fontSize: 16),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.teal,
+        backgroundColor: Colors.black,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -21,7 +25,7 @@ class HelpScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.teal,
+                color: Colors.black,
               ),
             ),
             const SizedBox(height: 10),
@@ -37,7 +41,7 @@ class HelpScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.teal,
+                color: Colors.black,
               ),
             ),
             const SizedBox(height: 10),
@@ -53,17 +57,17 @@ class HelpScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.teal,
+                color: Colors.black,
               ),
             ),
             const SizedBox(height: 10),
             const ListTile(
-              leading: Icon(Icons.email, color: Colors.teal),
+              leading: Icon(Icons.email, color: Colors.black),
               title: Text('Email: support@kikati.com'),
               subtitle: Text('We will respond within 24 hours.'),
             ),
             const ListTile(
-              leading: Icon(Icons.phone, color: Colors.teal),
+              leading: Icon(Icons.phone, color: Colors.black),
               title: Text('Call Us: +123-456-7890'),
               subtitle: Text('Available Monday to Friday, 9AM - 6PM'),
             ),
@@ -75,7 +79,7 @@ class HelpScreen extends StatelessWidget {
                 Navigator.pop(context); // Go back to the previous screen
               },
               style: ElevatedButton.styleFrom(
-                iconColor: Colors.teal,
+                iconColor: Colors.black,
                 padding:
                     const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                 shape: RoundedRectangleBorder(
@@ -83,7 +87,7 @@ class HelpScreen extends StatelessWidget {
                 ),
               ),
               child: const Text(
-                'Back to Home',
+                'Move Back To Settings',
                 style: TextStyle(fontSize: 16),
               ),
             ),
@@ -98,18 +102,34 @@ class HelpScreen extends StatelessWidget {
     return ExpansionTile(
       title: Text(
         question,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
       ),
-      children: const <Widget>[
+      children: <Widget>[
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
-            'Here will be the answer or instructions related to the question above. Make sure the content is clear and concise to help users find what they are looking for.',
-            style: TextStyle(fontSize: 14),
+            _getAnswerForQuestion(question),
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
           ),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
       ],
     );
+  }
+
+  // Method to get answer based on the question
+  String _getAnswerForQuestion(String question) {
+    switch (question) {
+      case 'How do I start a one-on-one chat?':
+        return 'To start a one-on-one chat, go to the "Chats" section and tap on the "New Chat" icon. Select a contact from your list, and start typing your message. You can send text, voice messages, images, and videos during the chat.';
+      case 'How do I create a group chat?':
+        return 'To create a group chat, navigate to the "Groups" section and tap the "Create Group" button. Add members from your contact list, give the group a name, and customize the group settings. Once done, you can start chatting and sharing media with everyone in the group.';
+      case 'How do I make a post?':
+        return 'To make a post, go to the "Home" screen and tap the "Create Post" button. You can add text, images, or videos to your post. Once you are happy with it, tap "Post" to share it with your followers and the Ki-Kati community. Posts can be commented on or liked by others.';
+      case 'How do I access the marketplace?':
+        return 'To access the marketplace, tap on the "Marketplace" tab from the bottom navigation bar. You can browse through different categories of products, list your own items for sale, or make purchases. If you see something you like, you can contact the seller directly through the marketplace chat feature.';
+      default:
+        return 'Sorry, we don\'t have an answer for this question yet.';
+    }
   }
 }

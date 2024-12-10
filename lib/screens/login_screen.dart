@@ -97,6 +97,7 @@ class _LoginState extends State<Login> {
         //await secureStorage.write(key: 'authToken', value: response['body']['token']);
 
         //store userInformation to secure storage!
+        print(response['body']);
         await storageService.storeData('user_data', response['body']);
 
         print("token saved to secure storage!");

@@ -47,7 +47,12 @@ class _ContactListScreenState extends State<ContactListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Contacts'),
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.black,
+        title: const Text(
+          'Contacts',
+          style: TextStyle(fontSize: 16),
+        ),
       ),
       body: _contacts.isEmpty
           ? const Center(

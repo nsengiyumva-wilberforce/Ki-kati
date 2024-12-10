@@ -188,19 +188,17 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 20),
-                  ElevatedButton(
+                  const SizedBox(width: 1),
+                  TextButton(
                     onPressed: searchFriends,
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue, // Background color
-                        foregroundColor:
-                            Colors.white, // Text color (foreground)
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              8.0), // Set border radius here
-                        ),
-                        padding: const EdgeInsets.all(20)),
-                    child: const Text("search"),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero, // Remove padding
+                    ),
+                    child: const Icon(
+                      Icons.search,
+                      color: Colors.teal, // Set the color of the icon
+                      size: 30.0, // Set the size of the icon
+                    ),
                   )
                 ],
               ),

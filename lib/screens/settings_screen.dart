@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:ki_kati/components/help_screen.dart';
+import 'package:ki_kati/screens/help_screen.dart';
 import 'package:ki_kati/components/http_servive.dart';
 import 'package:ki_kati/components/secureStorageServices.dart';
 import 'package:ki_kati/screens/contact_list_screen.dart';
 import 'package:ki_kati/screens/onboarding_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:ki_kati/screens/user_profile_screen.dart';
 import 'package:ki_kati/services/socket_service.dart';
+import 'package:share_plus/share_plus.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -100,7 +102,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Container(
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                color: Colors.orangeAccent,
+                color: Colors.grey,
                 borderRadius: BorderRadius.circular(12.0),
               ),
               child: const Row(
@@ -127,7 +129,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: Icons.color_lens,
               title: "Account",
               subtitle: "privacy, settings, change number",
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const UserProfileScreen()),
+                );
+              },
             ),
             SettingItem(
               icon: Icons.lock,
@@ -183,7 +191,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: Icons.group,
               title: "Invite a friend",
               subtitle: "Help center, contact us, privacy policy",
-              onTap: () {},
+              onTap: () async {
+                const String appLink = 'https://ki-kati.com';
+                await Share.share('Download our app Today: $appLink',
+                    subject: 'Start Chatting & Stay Connected');
+              },
             ),
             const Divider(height: 40),
             Text(
