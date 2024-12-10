@@ -21,14 +21,13 @@ class _FeedScreenState extends State<FeedScreen> {
   bool _isLoading = false;
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
-  final TextEditingController _imageUrlController = TextEditingController();
+
   List<File> filesSelected = [];
 
   void _resetFields() {
     setState(() {
       _titleController.text = "";
       _contentController.text = "";
-      _imageUrlController.text = "";
     });
   }
 
@@ -240,9 +239,10 @@ class _FeedScreenState extends State<FeedScreen> {
     });
 
     try {
-      final response = await httpService.post('/create', {
+      final response = await httpService.postdio('/create', {
         'content': _contentController.text,
         'title': _titleController.text,
+        'media': filesSelected
       });
       print(response);
 
@@ -330,7 +330,6 @@ class _FeedScreenState extends State<FeedScreen> {
     /*
     final TextEditingController _titleController = TextEditingController();
     final TextEditingController _contentController = TextEditingController();
-    final TextEditingController _imageUrlController = TextEditingController();
     */
     showModalBottomSheet(
       context: context,
@@ -372,20 +371,11 @@ class _FeedScreenState extends State<FeedScreen> {
               ),
               const SizedBox(height: 10),
 
-              // Image URL input (optional)
-              TextField(
-                controller: _imageUrlController,
-                decoration: const InputDecoration(
-                  labelText: 'Image URL (Optional)',
-                ),
-                style: const TextStyle(fontSize: 14),
-              ),
-
               TextButton.icon(
                 onPressed: pickFile, // Open file picker on button press
                 icon: const Icon(Icons.image, color: Colors.blue), // Image icon
                 label: const Text(
-                  'Select Image',
+                  'Select Files To Upload',
                   style: TextStyle(color: Colors.blue),
                 ),
                 style: TextButton.styleFrom(
@@ -400,6 +390,67 @@ class _FeedScreenState extends State<FeedScreen> {
                   iconColor: Colors.blue, // Text and icon color
                 ),
               ),
+              const SizedBox(height: 20),
+
+              // Display selected files
+              if (filesSelected.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Selected Files:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    // Check if selected files are images or other file types
+                    for (var file in filesSelected)
+                      if (file.path.toLowerCase().endsWith('.jpg') ||
+                          file.path.toLowerCase().endsWith('.png') ||
+                          file.path.toLowerCase().endsWith('.jpeg'))
+                        // Display image files in a row
+                        Row(
+                          children: [
+                            Image.file(
+                              file,
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.remove_circle,
+                                  color: Colors.red),
+                              onPressed: () {
+                                setState(() {
+                                  filesSelected.remove(file);
+                                });
+                              },
+                            ),
+                          ],
+                        )
+                      else
+                        // Display other file names in a column
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Row(
+                            children: [
+                              Text(file.path
+                                  .split('/')
+                                  .last), // Display file name
+                              IconButton(
+                                icon: const Icon(Icons.remove_circle,
+                                    color: Colors.red),
+                                onPressed: () {
+                                  setState(() {
+                                    filesSelected.remove(file);
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                  ],
+                ),
+
               const SizedBox(height: 20),
 
               // Submit and cancel buttons

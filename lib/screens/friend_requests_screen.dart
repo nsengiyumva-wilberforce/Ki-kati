@@ -104,67 +104,67 @@ class _FriendRequestScreenState extends State<FriendRequestScreen> {
           'Friend Requests',
         ),
       ),
-      body: isLoading
+      body: isLoading && friendRequests.isEmpty
           ? const Center(
-              child: CircularProgressIndicator(), // Show loading indicator
+              child: CircularProgressIndicator(),
             )
-          : friendRequests.isEmpty
-              ? const Center(
-                  child: Text("No pending friend requests."),
-                )
-              : ListView.builder(
-                  itemCount: friendRequests.length,
-                  itemBuilder: (context, index) {
-                    var friendRequest = friendRequests[index];
-                    String requestUsername =
-                        friendRequest['username'] ?? 'Unknown';
+          : RefreshIndicator(
+              onRefresh: getFriendRequests,
+              child: friendRequests.isEmpty
+                  ? const Center(
+                      child: Text("No pending friend requests."),
+                    )
+                  : ListView.builder(
+                      itemCount: friendRequests.length,
+                      itemBuilder: (context, index) {
+                        var friendRequest = friendRequests[index];
+                        String requestUsername =
+                            friendRequest['username'] ?? 'Unknown';
 
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          radius: 30,
-                          backgroundColor: Colors.green,
-                          child: Text(
-                            '${requestUsername[0]}', // Display first letter of the username
-                            style: const TextStyle(color: Colors.white),
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              radius: 30,
+                              backgroundColor: Colors.green,
+                              child: Text(
+                                requestUsername[
+                                    0], // Display first letter of the username
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            title: Text(requestUsername),
+                            subtitle:
+                                const Text('You have a new friend request'),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () => handleFriendRequest(
+                                      requestUsername, true),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: const Text('Confirm'),
+                                ),
+                                const SizedBox(width: 10),
+                                ElevatedButton(
+                                  onPressed: () => handleFriendRequest(
+                                      requestUsername, false),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: const Text('Deny'),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        title: Text(requestUsername),
-                        subtitle: const Text('You have a new friend request'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ElevatedButton(
-                              onPressed: () =>
-                                  handleFriendRequest(requestUsername, true),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
-                              ),
-                              child: const Text('Confirm'),
-                            ),
-                            const SizedBox(width: 10),
-                            ElevatedButton(
-                              onPressed: () =>
-                                  handleFriendRequest(requestUsername, false),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                foregroundColor: Colors.white,
-                              ),
-                              child: const Text('Deny'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: getFriendRequests, // Refresh friend requests when pressed
-        backgroundColor: Colors.black,
-        child: const Icon(Icons.refresh, color: Colors.white),
-      ),
+                        );
+                      },
+                    ),
+            ),
     );
   }
 }

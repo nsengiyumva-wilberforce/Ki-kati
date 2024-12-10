@@ -180,56 +180,127 @@ class _KikatiGroupState extends State<KikatiGroup> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment
+                  .spaceBetween, // Distribute space between children
               children: [
                 const Text(
-                  "Need a group?",
+                  "Groups",
                   style: TextStyle(
                     fontSize: 24.0,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        isMyGroups = true;
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue, // Background color
-                      foregroundColor: Colors.white, // Text color (foreground)
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            8.0), // Set border radius here
+                // Buttons aligned to the right
+                Row(
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          isMyGroups = true;
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue, // Background color
+                        foregroundColor:
+                            Colors.white, // Text color (foreground)
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                              8.0), // Set border radius here
+                        ),
                       ),
+                      child: const Text("My Groups"),
                     ),
-                    child: const Text("My Groups"),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        isMyGroups = false;
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green, // Background color
-                      foregroundColor: Colors.white, // Text color (foreground)
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            8.0), // Set border radius here
+                    const SizedBox(width: 10), // Space between the buttons
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          isMyGroups = false;
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green, // Background color
+                        foregroundColor:
+                            Colors.white, // Text color (foreground)
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                              8.0), // Set border radius here
+                        ),
                       ),
+                      child: const Text("Other Groups"),
                     ),
-                    child: const Text("Other Groups"),
-                  ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
+            const Text(
+              "Group Description",
+              style: TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "Make Group For Team Work",
+              style: TextStyle(
+                  fontSize: 34.0,
+                  fontWeight: FontWeight.w700,
+                  color: Color.fromARGB(221, 19, 19, 19)),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(
+                          255, 135, 193, 241), // Background color
+                      foregroundColor: Colors.white, // Text color (foreground)
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                            20.0), // Set border radius here
+                      ),
+                    ),
+                    child: const Text("Group Work")),
+                const SizedBox(width: 20),
+                ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(
+                          255, 135, 193, 241), // Background color
+                      foregroundColor: Colors.white, // Text color (foreground)
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                            20.0), // Set border radius here
+                      ),
+                    ),
+                    child: const Text("Team Relationship")),
+              ],
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "Group Admin",
+              style: TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey),
+            ),
+            const SizedBox(height: 20),
+            const ListTile(
+              leading: CircleAvatar(
+                radius: 25, // Optional: size of the CircleAvatar
+                backgroundImage:
+                    AssetImage('images/logo.png'), // Path to the image asset
+              ),
+              title: Text('EngDave'),
+              subtitle: Text(
+                'Group Admin',
+                style:
+                    TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+              ),
+            ),
+            const SizedBox(height: 20),
             TextField(
               controller: _groupNameController,
               decoration: const InputDecoration(
@@ -240,11 +311,11 @@ class _KikatiGroupState extends State<KikatiGroup> {
             ),
             const SizedBox(height: 20),
             const Text(
-              "Select Users to Add:",
+              "Select Friends to be Added",
               style: TextStyle(
-                fontSize: 18.0,
-                fontWeight: FontWeight.w500,
-              ),
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey),
             ),
             const SizedBox(height: 10),
             isLoading
@@ -272,11 +343,11 @@ class _KikatiGroupState extends State<KikatiGroup> {
                         child: Column(
                           children: [
                             CircleAvatar(
-                              radius: 35.0,
+                              radius: 30.0,
                               backgroundImage:
                                   const AssetImage('images.user.png'),
                               backgroundColor: selectedFriends.contains(userId)
-                                  ? Colors.blue
+                                  ? const Color.fromARGB(255, 131, 193, 244)
                                   : Colors.grey,
                               child: selectedFriends.contains(userId)
                                   ? const Icon(Icons.check, color: Colors.white)
@@ -335,7 +406,7 @@ class _KikatiGroupState extends State<KikatiGroup> {
               isLoading: _isLoading,
               color: _isLoading
                   ? const Color.fromARGB(255, 38, 34, 34)
-                  : Colors.blue,
+                  : Colors.teal,
             ),
           ],
         ),

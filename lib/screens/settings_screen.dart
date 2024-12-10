@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:ki_kati/components/help_screen.dart';
 import 'package:ki_kati/components/http_servive.dart';
 import 'package:ki_kati/components/secureStorageServices.dart';
+import 'package:ki_kati/screens/contact_list_screen.dart';
 import 'package:ki_kati/screens/onboarding_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:ki_kati/services/socket_service.dart';
@@ -149,10 +151,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: () {},
             ),
             SettingItem(
+              icon: Icons.contacts,
+              title: "Contacts",
+              subtitle: "View My Contacts",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ContactListScreen()),
+                );
+              },
+            ),
+            SettingItem(
               icon: Icons.help,
               title: "Help",
               subtitle: "Help center, contact us, privacy policy",
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HelpScreen()),
+                );
+              },
             ),
             SettingItem(
               icon: Icons.storage,

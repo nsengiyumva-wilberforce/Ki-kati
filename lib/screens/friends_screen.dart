@@ -69,37 +69,36 @@ class _FriendsScreenState extends State<FriendsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       //appBar: AppBar(),
-      body: isLoading
+      body: isLoading && friends.isEmpty
           ? const Center(
-              child: CircularProgressIndicator()) // Show loading indicator
-          : friends.isEmpty
-              ? const Center(
-                  child: Text("You have no friends!"),
-                )
-              : ListView.builder(
-                  itemCount: friends.length,
-                  itemBuilder: (context, index) {
-                    var friend = friends[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        child: Text(
-                          '${friend['firstName']?[0] ?? ''}${friend['lastName']?[0] ?? ''}',
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      title:
-                          Text('${friend['firstName']} ${friend['lastName']}'),
-                      subtitle:
-                          Text('${friend['friends']?.length ?? 0} friends'),
-                    );
-                  },
-                ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: getFriends, // Refresh icon for the button
-        tooltip:
-            'Refresh Friends', // Trigger the refresh when the button is pressed
-        child: const Icon(Icons.refresh), // Tooltip text on long press
-      ),
+              child:
+                  CircularProgressIndicator(), // Show loading only at the start
+            )
+          : RefreshIndicator(
+              onRefresh: getFriends, // Trigger the refresh when user pulls down
+              child: friends.isEmpty
+                  ? const Center(
+                      child: Text("You have no friends!"),
+                    )
+                  : ListView.builder(
+                      itemCount: friends.length,
+                      itemBuilder: (context, index) {
+                        var friend = friends[index];
+                        return ListTile(
+                          leading: CircleAvatar(
+                            child: Text(
+                              '${friend['firstName']?[0] ?? ''}${friend['lastName']?[0] ?? ''}',
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                          title: Text(
+                              '${friend['firstName']} ${friend['lastName']}'),
+                          subtitle:
+                              Text('${friend['friends']?.length ?? 0} friends'),
+                        );
+                      },
+                    ),
+            ),
     );
   }
 }

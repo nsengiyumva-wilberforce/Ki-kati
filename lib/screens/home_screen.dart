@@ -143,8 +143,8 @@ class _HomeScreenState extends State<HomeScreen> {
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+            icon: Icon(Icons.message_rounded),
+            label: 'Messages',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.search),
@@ -155,8 +155,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'My Friends',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
+            icon: Icon(Icons.settings),
+            label: 'Settings',
           ),
         ],
         currentIndex: _selectedIndex, // Set the current index
