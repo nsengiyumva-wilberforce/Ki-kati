@@ -113,13 +113,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         foregroundColor: Colors.white,
         title: const Text(
           "Edit Profile",
-          style: TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: 20),
         ),
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.teal,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -294,7 +295,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             style: const TextStyle(fontSize: 16.0, color: Colors.black),
           ),
           const SizedBox(
-            height: 10,
+            height: 5,
           ),
           const Divider()
         ],

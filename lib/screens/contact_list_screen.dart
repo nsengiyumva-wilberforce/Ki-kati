@@ -48,10 +48,10 @@ class _ContactListScreenState extends State<ContactListScreen> {
     return Scaffold(
       appBar: AppBar(
         foregroundColor: Colors.white,
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.teal,
         title: const Text(
           'Contacts',
-          style: TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: 20),
         ),
       ),
       body: _contacts.isEmpty

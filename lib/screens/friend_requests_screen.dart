@@ -99,9 +99,10 @@ class _FriendRequestScreenState extends State<FriendRequestScreen> {
     return Scaffold(
       appBar: AppBar(
         foregroundColor: Colors.white,
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.teal,
         title: const Text(
           'Friend Requests',
+          style: TextStyle(fontSize: 20),
         ),
       ),
       body: isLoading && friendRequests.isEmpty

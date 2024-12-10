@@ -6,14 +6,15 @@ class HelpScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         foregroundColor: Colors.white,
         title: const Text(
           'Help & Support',
-          style: TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: 20),
         ),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.teal,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -25,7 +26,7 @@ class HelpScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: Colors.teal,
               ),
             ),
             const SizedBox(height: 10),
@@ -41,7 +42,7 @@ class HelpScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: Colors.teal,
               ),
             ),
             const SizedBox(height: 10),
@@ -57,7 +58,7 @@ class HelpScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: Colors.teal,
               ),
             ),
             const SizedBox(height: 10),
@@ -102,7 +103,7 @@ class HelpScreen extends StatelessWidget {
     return ExpansionTile(
       title: Text(
         question,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
       ),
       children: <Widget>[
         Padding(

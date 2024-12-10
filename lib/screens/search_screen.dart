@@ -37,7 +37,10 @@ class _SearchScreenState extends State<SearchScreen> {
         context: context,
         barrierDismissible: false, // Prevent dismissing by tapping outside
         builder: (context) => const AlertDialog(
-          title: Text('Searching for users...'),
+          title: Text(
+            'Searching for users...',
+            style: TextStyle(fontSize: 16),
+          ),
           content: Row(
             children: [
               CircularProgressIndicator(),
@@ -80,7 +83,10 @@ class _SearchScreenState extends State<SearchScreen> {
       barrierDismissible:
           false, // Prevent dismissing the dialog by tapping outside
       builder: (context) => AlertDialog(
-        title: const Text('Adding Friend '),
+        title: const Text(
+          'Adding Friend ',
+          style: TextStyle(fontSize: 17),
+        ),
         content: Row(
           children: [
             const CircularProgressIndicator(),
@@ -135,9 +141,12 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Find Your Friends"),
+        title: const Text(
+          "Find Your Friends",
+          style: TextStyle(fontSize: 20),
+        ),
         foregroundColor: Colors.white,
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.teal,
       ),
       body: GestureDetector(
         onTap: () {
@@ -167,10 +176,29 @@ class _SearchScreenState extends State<SearchScreen> {
                     child: TextField(
                       controller:
                           _searchController, // Using the controller here
-                      //autofocus: true, // Focus the field when modal opens
                       decoration: InputDecoration(
-                        hintText: 'Search for users...',
+                        hintText: 'Search for friends ...',
+                        hintStyle: const TextStyle(
+                            fontSize: 14.0), // Standard font size for hint text
                         border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(8.0), // Rounded corners
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: Colors
+                                .grey, // Set the color of the border when not focused
+                            width: 1.0, // Border width
+                          ),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        // Border color when the TextField is focused
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: Colors
+                                .teal, // Set the color of the border when focused
+                            width: 1.0, // Border width when focused
+                          ),
                           borderRadius: BorderRadius.circular(8.0),
                         ),
                         prefixIcon: const Icon(
@@ -181,10 +209,11 @@ class _SearchScreenState extends State<SearchScreen> {
                           icon: const Icon(Icons.clear),
                           iconSize: 20.0,
                           onPressed: () {
-                            _searchController
-                                .clear(); // Clears the search field
+                            _searchController.clear();
                           },
                         ),
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 12.0),
                       ),
                     ),
                   ),
@@ -233,18 +262,33 @@ class _SearchScreenState extends State<SearchScreen> {
                               subtitle: Text(
                                   '${user['friends']?.length ?? 0} Friends'),
                               trailing: !isFriend
-                                  ? ElevatedButton(
-                                      onPressed: () {
-                                        addFriend(user[
-                                            'username']); // Add friend when pressed
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blue,
-                                        foregroundColor: Colors.white,
+                                  ? Container(
+                                      width:
+                                          40.0, // Set a smaller width for the circle
+                                      height: 40.0,
+                                      decoration: const BoxDecoration(
+                                        color: Colors
+                                            .teal, // Background color of the circle
+                                        shape: BoxShape
+                                            .circle, // Makes the container circular
                                       ),
-                                      child: const Text('Add Friend'),
+                                      child: IconButton(
+                                        onPressed: () {
+                                          addFriend(user[
+                                              'username']); // Add friend when pressed
+                                        },
+                                        icon: const Icon(Icons.add,
+                                            color: Colors
+                                                .white), // Plus icon with white color
+                                        tooltip:
+                                            'Add Friend', // Optional tooltip for accessibility
+                                      ),
                                     )
-                                  : const Text('Friend'),
+                                  : const Icon(
+                                      Icons.remove, // Minus symbol icon
+                                      color: Colors.grey, // Icon color
+                                      size: 24.0, // Icon size
+                                    ),
                             ),
                           );
                         },

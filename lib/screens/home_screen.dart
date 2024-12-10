@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         foregroundColor: Colors.white,
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.teal,
         leading: IconButton(
           icon: const Icon(Icons.search), // Search icon
           onPressed: () {
@@ -69,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         title: const Text(
           "Ki-Kati",
-          style: TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: 20),
         ),
         centerTitle: true,
         actions: [
