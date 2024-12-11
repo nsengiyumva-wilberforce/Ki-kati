@@ -274,7 +274,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           Text(
             label,
             style: const TextStyle(
-                fontSize: 18.0,
+                fontSize: 16.0,
                 color: Colors.grey,
                 fontWeight: FontWeight.bold),
           ),

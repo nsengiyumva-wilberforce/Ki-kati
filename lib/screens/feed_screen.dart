@@ -668,7 +668,7 @@ class _FeedScreenState extends State<FeedScreen> {
     return Scaffold(
       appBar: AppBar(
         foregroundColor: Colors.white,
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.teal,
         title: const Text(
           'Posts Feed',
           style: TextStyle(fontSize: 16),

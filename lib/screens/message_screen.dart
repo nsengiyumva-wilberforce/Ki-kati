@@ -493,7 +493,7 @@ class _MessageScreenState extends State<MessageScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          backgroundColor: Colors.black, // Solid blue background color
+          backgroundColor: Colors.teal, // Solid blue background color
           foregroundColor: Colors.white,
           title: Row(children: [
             CircleAvatar(

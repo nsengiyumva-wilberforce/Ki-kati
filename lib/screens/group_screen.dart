@@ -282,18 +282,26 @@ class _KikatiGroupState extends State<KikatiGroup> {
                   color: Colors.grey),
             ),
             const SizedBox(height: 20),
-            const ListTile(
-              leading: CircleAvatar(
-                radius: 25, // Optional: size of the CircleAvatar
-                backgroundImage:
-                    AssetImage('images/logo.png'), // Path to the image asset
-              ),
-              title: Text('EngDave'),
-              subtitle: Text(
-                'Group Admin',
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
-              ),
+            const Row(
+              children: [
+                CircleAvatar(
+                  radius: 35, // Increase the radius to make the image bigger
+                  backgroundImage:
+                      AssetImage('images/logo.png'), // Path to the image asset
+                ),
+                SizedBox(width: 16), // Space between the image and text
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('EngDave'),
+                    Text(
+                      'Group Admin',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             TextField(

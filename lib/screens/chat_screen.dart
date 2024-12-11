@@ -158,42 +158,48 @@ class _ChatScreenState extends State<ChatScreen> {
 
                 return RefreshIndicator(
                   onRefresh: _onRefresh, // Trigger the refresh
-                  child: ListView.builder(
-                    itemCount: friends.length,
-                    itemBuilder: (context, index) {
-                      final friend = friends[index];
-                      final friendUsername = friend['username'] ?? 'Unknown';
-                      final friendId = friend['_id'] ?? 'unknown';
-                      final isActive = isUserActive(friend);
+                  child: isLoading // Check if data is loading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ListView.builder(
+                          itemCount: friends.length,
+                          itemBuilder: (context, index) {
+                            final friend = friends[index];
+                            final friendUsername =
+                                friend['username'] ?? 'Unknown';
+                            final friendId = friend['_id'] ?? 'unknown';
+                            final isActive = isUserActive(friend);
 
-                      return ChatItem(
-                        name: friendUsername,
-                        message:
-                            "last message here ...", // Placeholder for last message
-                        time: isActive,
-                        unreadCount: 0, // Placeholder for unread messages count
-                        avatarColor: getAvatarColor(friendUsername),
-                        onTap: () {
-                          // Navigate to the message screen with the friend details
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MessageScreen(
-                                currentUserName: username ??
-                                    "unknown", // Replace with actual current user ID
-                                connectionDetails:
-                                    friend['connection_details'] ?? 'unknown',
-                                targetUserId: friendId,
-                                targetUsername: friendUsername,
-                                targetProfileImage:
-                                    friend['profileImage'] ?? 'images/user.png',
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
+                            return ChatItem(
+                              name: friendUsername,
+                              message:
+                                  "last message here ...", // Placeholder for last message
+                              time: isActive,
+                              unreadCount:
+                                  0, // Placeholder for unread messages count
+                              avatarColor: getAvatarColor(friendUsername),
+                              onTap: () {
+                                // Navigate to the message screen with the friend details
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MessageScreen(
+                                      currentUserName: username ??
+                                          "unknown", // Replace with actual current user ID
+                                      connectionDetails:
+                                          friend['connection_details'] ??
+                                              'unknown',
+                                      targetUserId: friendId,
+                                      targetUsername: friendUsername,
+                                      targetProfileImage:
+                                          friend['profileImage'] ??
+                                              'images/user.png',
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
                 );
               },
             ),

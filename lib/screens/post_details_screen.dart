@@ -212,6 +212,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
     final post = widget.post; // Access the passed post object
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         foregroundColor: Colors.white,
         backgroundColor: Colors.black,
@@ -279,7 +280,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                   icon: Icon(Icons.comment, color: Colors.amber[700], size: 20),
                   onPressed: () {
                     // Show bottom sheet to add a comment
-                    _showCommentBottomSheet(context);
+                    _showCommentPopup(context);
                   },
                 ),
                 Text(post.comments.length.toString(),
@@ -399,7 +400,77 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
   }
 
   // Function to show bottom sheet for adding a comment
-  void _showCommentBottomSheet(BuildContext context) {
+  void _showCommentPopup(BuildContext context) {
+    final TextEditingController _commentController = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible:
+          false, // Prevents dismissing the dialog by tapping outside
+      builder: (BuildContext context) {
+        return Dialog(
+          // Use the Dialog widget instead of AlertDialog
+          insetPadding:
+              const EdgeInsets.all(10), // Remove any padding from the dialog
+          child: Container(
+            width: double.infinity, // Make the container take the full width
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Add a comment',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _commentController,
+                  decoration:
+                      const InputDecoration(hintText: 'Type your comment'),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        String comment = _commentController.text.trim();
+                        if (comment.isNotEmpty) {
+                          _addComment(
+                              widget.post.id, comment); // Pass comment here
+                          //Navigator.of(context).pop(); // Close the popup after posting
+                        } else {
+                          // Show an error message if the comment is empty
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Comment cannot be empty')),
+                          );
+                        }
+                      },
+                      child: const Text('Post Comment'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close the popup
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+
+/*
+ void _showCommentBottomSheet(BuildContext context) {
     final TextEditingController _commentController = TextEditingController();
 
     showModalBottomSheet(
@@ -457,4 +528,4 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
       },
     );
   }
-}
+*/

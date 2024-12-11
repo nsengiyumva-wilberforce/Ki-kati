@@ -75,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           // Popup menu button to show a dropdown of actions
           PopupMenuButton<String>(
-            color: Colors.black,
+            color: Colors.teal,
             shadowColor: Colors.red,
             onSelected: (value) {
               // Perform action based on selected value
@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Icon(
                         Icons.people,
-                        color: Colors.green,
+                        color: Colors.white,
                         size: 18,
                       ),
                       SizedBox(width: 8),
